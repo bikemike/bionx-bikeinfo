@@ -7,14 +7,14 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, fmMain, BionX, CANAdapter, TinyCANAdapter, FileCANAdapter, TinyCanDrv,
-  BionXProfiles
+  Forms, fmMain, BionX, CANAdapter, TinyCANAdapter,
+  FileCANAdapter, TinyCanDrv, BionXProfiles, fmCodes
   { you can add units after this };
 
 {$R *.res}
 
 begin
-  RequireDerivedFormResource := True;
+//  RequireDerivedFormResource := True;
   Application.Initialize;
   Application.CreateForm(TfrmBionXMain, frmBionXMain);
   Application.Run;

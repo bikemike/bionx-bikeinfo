@@ -16,12 +16,12 @@
 { along with this program; if not, write to the Free Software            }
 { Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.              }
 
+{ ts 2014/05/20 adapted to Unix i.e. Raspberry Pi                        }
 { ts 2013/08/08 adapted to Lararus                                       }
 
 unit TinyCanDrv;
 
 interface
-
 {$WARN SYMBOL_DEPRECATED OFF}
 
 {$ifdef FPC}
@@ -29,18 +29,18 @@ interface
 {$endif}
 
 uses
-  Windows, SysUtils,
-  {$ifndef FPC}
-  Messages, ComCtrls, Controls,
+  SysUtils,
+  {$ifdef FPC}
+  DynLibs,
+  {$else}
+  Windows, 
   {$endif}
-  Forms, Classes, Registry;
-
+  {$ifndef UNIX}
+  Registry,
+  {$endif}
+  Forms, Classes;
+  
 const
-  {$ifndef FPC}
-  CM_CAN_PNP_EVENT = WM_USER + 100;
-  CM_CAN_STATUS_EVENT = WM_USER + 101;
-  CM_CAN_RXD_EVENT = WM_USER + 102;
-  {$endif}
 
   FlagsCanLength: DWORD = ($0000000F);
   FlagsCanRTR: DWORD    = ($00000040);
@@ -110,9 +110,17 @@ const
                                          921600,
                                          1000000);                                      
 
-  API_DRIVER_DLL: String = 'mhstcan.dll';
-  REG_TINY_CAN_API: String = 'Software\Tiny-CAN\API\';
-  REG_TINY_CAN_API_PATH_ENTRY: String = 'PATH';
+  {$ifdef UNIX}
+  API_DRIVER_LIB              = 'libmhstcan.so';
+  API_DRIVER_EXT              = '.so';
+  ETC_TINY_CAN_API_CONF       = '/etc/TinyCanApi.conf';
+  ETC_TINY_CAN_API_PATH_ENTRY = 'PATH';
+  {$else}
+  API_DRIVER_LIB              = 'mhstcan.dll';
+  API_DRIVER_EXT              = '.dll';
+  REG_TINY_CAN_API            = 'Software\Tiny-CAN\API\';
+  REG_TINY_CAN_API_PATH_ENTRY = 'PATH';
+  {$endif}
 
 
 type
@@ -307,13 +315,9 @@ TTinyCAN = class(TComponent)
     FOpenStr: String;
     function GetLogFlags: DWORD;
     function TestApi(name: String): Boolean;
-    function RegReadStringEntry(path, entry: String): String;
     function GetApiDriverWithPath(driver_file: String): String;
     procedure SetCanSpeed(speed: TCanSpeed);
     procedure SetEventMasks(value: TEventMasks);
-    {$ifndef FPC}
-    procedure WndProc(var msg : TMessage);
-    {$endif}
   public
     { Events}
     pmCanPnPEvent: TOnCanPnPEvent;
@@ -393,9 +397,14 @@ procedure CanRxEventCallback(index: DWORD; msg: PCanMsg; count: Integer); stdcal
 
 
 implementation
-
+type
+  {$ifdef FPC}
+  HLIBRARY= TLibHandle;
+  {$ELSE}
+  HLIBRARY= HMODULE;
+  {$endif}
 var
-  DrvDLLWnd: HWnd = 0;
+  DrvDLLWnd: HLIBRARY = 0;
 
   pmCanInitDriver: TF_CanInitDriver = nil;
   pmCanDownDriver: TF_CanDownDriver = nil;
@@ -424,16 +433,7 @@ var
   pmCanSetEvents: TF_CanSetEvents = nil;
   pmCanEventStatus: TF_CanEventStatus = nil;
 
-  FDeviceStatus: TDeviceStatus;
-  {$ifdef FPC}
   FTinyCAN : TTinyCAN;
-  {$else}
-  FIndex: DWORD;
-  FPnPStatus: Integer;
-  FRxDMsgs: PCanMsg;
-  FRxDCount: Integer;
-  FWindowHandle : HWND;
-  {$endif}
 
 
 {**************************************************************}
@@ -443,11 +443,7 @@ constructor TTinyCAN.Create(AOwner: TComponent);
 
 begin;
 inherited Create(AOwner);
-{$ifdef FPC}
 FTinyCAN := self;
-{$else}
-FWindowHandle := AllocateHWnd(WndProc);
-{$endif}
 FTreiberName := '';
 FPort := 0;
 FBaudRate := SER_921k6_BAUD;
@@ -476,11 +472,7 @@ end;
 destructor TTinyCAN.Destroy;
 
 begin
-{$ifdef FPC}
 FTinyCAN := nil;
-{$else}
-DeAllocateHWnd(FWindowHandle);
-{$endif}
 inherited Destroy;
 end;
 
@@ -489,7 +481,7 @@ end;
 {* Treiber DLL suchen                                         *}
 {**************************************************************}
 function TTinyCAN.TestApi(name: String): Boolean;
-var dll_wnd: HWnd;
+var dll_wnd: HLIBRARY;
 
 begin;
 result := False;
@@ -502,11 +494,28 @@ if length(name) > 0 then
       result := True;
     FreeLibrary(dll_wnd);
     end;
-  end;    
+  end;
 end;
 
-
-function TTinyCAN.RegReadStringEntry(path, entry: String): String;
+{$ifdef UNIX}
+function EtcReadStringEntry(config, entry: String): String;
+var
+  sl : TStringlist;
+begin
+  sl := TStringlist.Create;
+  try
+    try
+      sl.LoadFromFile ( config );
+      Result := sl.Values[ entry ];
+    except
+      Result := '';
+    end;
+  finally
+    sl.Free;
+  end;
+end;
+{$else}
+function RegReadStringEntry(path, entry: String): String;
 var R: TRegistry;
 
 begin;
@@ -522,6 +531,7 @@ if R.OpenKey(path, False) then
 R.CloseKey;
 R.Free;
 end;
+{$endif}
 
 
 function TTinyCAN.GetApiDriverWithPath(driver_file: String): String;
@@ -530,21 +540,25 @@ var file_name: String;
 begin;
 result := '';
 if driver_file = '' then
-  driver_file := API_DRIVER_DLL
+  driver_file := API_DRIVER_LIB
 else
   begin;
   if ExtractFileExt(driver_file) = '' then
-    driver_file := driver_file + '.dll';
+    driver_file := driver_file + API_DRIVER_EXT;
   if ExtractFilePath(driver_file) <> '' then
     begin;
     result := driver_file;
     exit;
     end;
-  end;  
+  end;
+{$ifdef UNIX}
+file_name := EtcReadStringEntry(ETC_TINY_CAN_API_CONF, ETC_TINY_CAN_API_PATH_ENTRY);
+{$else}
 file_name := RegReadStringEntry(REG_TINY_CAN_API, REG_TINY_CAN_API_PATH_ENTRY);
+{$endif}
 if length(file_name) > 0 then
   begin;
-  file_name := file_name + '\' + driver_file;
+  file_name := IncludeTrailingPathDelimiter ( file_name ) + driver_file;
   if TestApi(file_name) then
     result := file_name;
   end;
@@ -553,38 +567,10 @@ if length(result) = 0 then
   file_name := ExtractFilePath(Application.ExeName) + driver_file;
   if TestApi(file_name) then
     result := file_name;
-  end;  
-end;
-
-
-{**************************************************************}
-{* Message Handler                                            *}
-{**************************************************************}
-{$ifndef FPC}
-procedure TTinyCAN.WndProc(var msg : TMessage);
-
-begin
-  with msg do
-  begin;
-  case Msg of
-    CM_CAN_PNP_EVENT    : begin;
-                          if Assigned(pmCanPnPEvent) then
-                            pmCanPnPEvent(self, FIndex, FPnPStatus);
-                          end;
-    CM_CAN_STATUS_EVENT : begin;
-                          if Assigned(pmCanStatusEvent) then
-                            pmCanStatusEvent(self, FIndex, FDeviceStatus);
-                          end;
-    CM_CAN_RXD_EVENT    : begin;
-                          if Assigned(pmCanRxDEvent) then
-                            pmCanRxDEvent(self, FIndex, FRxDMsgs, FRxDCount);
-                          end;
-    else // Handle all messages with the default handler
-      Result := DefWindowProc(FWindowHandle, Msg, wParam, lParam);
-    end;
   end;
 end;
-{$endif}
+
+
 
 {**************************************************************}
 {*  Events                                                    *}
@@ -592,47 +578,28 @@ end;
 procedure CanPnPEventCallback(index: DWORD; status: Integer); stdcall;
 
 begin;
-{$ifdef FPC}
-if Assigned(FTinyCAN.pmCanPnPEvent) then
-  FTinyCAN.pmCanPnPEvent(FTinyCAN, Index, Status);
-{$else}
-FIndex := index;
-FPnPStatus := status;
-SendMessage(FWindowHandle, CM_CAN_PNP_EVENT, 0, 0);
-{$endif}
+  if Assigned(FTinyCAN.pmCanPnPEvent) then
+    FTinyCAN.pmCanPnPEvent(FTinyCAN, Index, Status);
 end;
-
 
 procedure CanStatusEventCallback(index: DWORD; device_status_drv: PDeviceStatusDrv); stdcall;
 
+var
+  DeviceStatus: TDeviceStatus;
 begin;
-FDeviceStatus.DrvStatus := TDrvStatus(device_status_drv^.DrvStatus);
-FDeviceStatus.CanStatus := TCanStatus(device_status_drv^.CanStatus);
-FDeviceStatus.FifoStatus := TCanFifoStatus(device_status_drv^.FifoStatus);
-{$ifdef FPC}
-if Assigned(FTinyCAN.pmCanStatusEvent) then
-  FTinyCAN.pmCanStatusEvent(FTinyCAN, Index, FDeviceStatus);
-{$else}
-FIndex := index;
-SendMessage(FWindowHandle, CM_CAN_STATUS_EVENT, 0, 0);
-{$endif}
+  DeviceStatus.DrvStatus := TDrvStatus(device_status_drv^.DrvStatus);
+  DeviceStatus.CanStatus := TCanStatus(device_status_drv^.CanStatus);
+  DeviceStatus.FifoStatus := TCanFifoStatus(device_status_drv^.FifoStatus);
+  if Assigned(FTinyCAN.pmCanStatusEvent) then
+    FTinyCAN.pmCanStatusEvent(FTinyCAN, Index, DeviceStatus);
 end;
-
 
 procedure CanRxEventCallback(index: DWORD; msg: PCanMsg; count: Integer); stdcall;
 
 begin;
-{$ifdef FPC}
-if Assigned(FTinyCAN.pmCanRxDEvent) then
-  FTinyCAN.pmCanRxDEvent(FTinyCAN, Index, msg, Count);
-{$else}
-FIndex := index;
-FRxDMsgs := msg;
-FRxDCount := count;
-SendMessage(FWindowHandle, CM_CAN_RXD_EVENT, 0, 0);
-{$endif}
+  if Assigned(FTinyCAN.pmCanRxDEvent) then
+    FTinyCAN.pmCanRxDEvent(FTinyCAN, Index, msg, Count);
 end;
-
 
 {**************************************************************}
 {* Property Set Funktionen                                    *}

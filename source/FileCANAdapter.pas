@@ -34,6 +34,7 @@ uses
 type
   TFileCANAdapter = class ( TCANAdapter )
   private
+    FRxdThread : TThread;
     FMem : array[0..255, 0..255] of byte;
     FFilename : string;
   protected
@@ -49,6 +50,8 @@ type
 
 
 implementation
+uses
+  FileUtil;
 
 
 (******************************************************************************)
@@ -69,9 +72,9 @@ begin
     if od.Execute then
     begin
       FFilename := od.Filename;
-      if fileexists ( FFilename ) then
+      if fileexists ( UTF8ToSys( FFilename ) ) then
       begin
-        fs := TFileStream.Create ( FFilename, fmOpenReadWrite );
+        fs := TFileStream.Create ( UTF8ToSys( FFilename ), fmOpenReadWrite );
         try
           fs.Read ( FMem, sizeof ( FMem ) );
         finally
@@ -91,7 +94,7 @@ procedure TFileCANAdapter.Disconnect;
 var
   fs : TFileStream;
 begin
-  fs := TFileStream.Create ( FFilename, fmCreate );
+  fs := TFileStream.Create ( UTF8ToSys( FFilename ), fmCreate );
   try
     fs.Write ( FMem, sizeof ( FMem ) );
   finally

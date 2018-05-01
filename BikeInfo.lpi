@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -65,18 +65,15 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-d"/>
+        <CommandLineParams Value="-d -x"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="tinycan"/>
-      </Item1>
-      <Item2>
         <PackageName Value="LCL"/>
-      </Item2>
+      </Item1>
     </RequiredPackages>
-    <Units Count="9">
+    <Units Count="10">
       <Unit0>
         <Filename Value="BikeInfo.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -124,6 +121,14 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="BionXProfiles"/>
       </Unit8>
+      <Unit9>
+        <Filename Value="source\fmcodes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Codes"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="fmCodes"/>
+      </Unit9>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -152,7 +157,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="5">
+    <Exceptions Count="6">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
@@ -168,6 +173,9 @@
       <Item5>
         <Name Value="Exception"/>
       </Item5>
+      <Item6>
+        <Name Value="VersionException"/>
+      </Item6>
     </Exceptions>
   </Debugging>
 </CONFIG>

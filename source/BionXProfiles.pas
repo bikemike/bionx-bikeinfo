@@ -14,9 +14,6 @@
 { You should have received a copy of the GNU General Public License      }
 { along with this program; if not, write to the Free Software            }
 { Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.              }
-{                                                                        }
-{ Portions of this software are taken and adapted from BigXionFlasher    }
-{ published by Thomas König <info@bigxionflasher.org>                    }
 
 unit BionXProfiles;
 
@@ -61,8 +58,10 @@ type
     function GetTorqueSensorExtraGainMaxSpeed: double;
     procedure SetTorquesensorExtraGainMaxSpeed ( AValue: double ) ;
 
-    function GetBoostLevel: integer;
-    procedure SetBoostLevel ( AValue: integer ) ;
+    function GetBoostLevel: double;
+    procedure SetBoostLevel ( AValue: double ) ;
+    function GetBoostDisplay: integer;
+    procedure SetBoostDisplay ( AValue: integer ) ;
   protected
   public
     property AssistMinSpeed : double read GetAssistMinSpeed write SetAssistMinSpeed;
@@ -81,7 +80,8 @@ type
     property TorquesensorExtraGain : double read GetTorqueSensorExtraGain write SetTorquesensorExtraGain;
     property TorquesensorExtraGainMaxSpeed : double read GetTorqueSensorExtraGainMaxSpeed write SetTorquesensorExtraGainMaxSpeed;
 
-    property BoostLevel : integer read GetBoostLevel write SetBoostLevel;
+    property BoostLevel : double read GetBoostLevel write SetBoostLevel;
+    property BoostDisplay : integer read GetBoostDisplay write SetBoostDisplay;
   end;
 
 implementation
@@ -108,6 +108,7 @@ const
 
   SECTION_BOOST                        = 'BOOST';
     ENTRY_BOOST_LEVEL                  = 'LEVEL';
+    ENTRY_BOOST_DISPLAY                = 'DISPLAY';
 
 (******************************************************************************)
 { TBionXProfileFile }
@@ -269,14 +270,26 @@ end;
 
 (******************************************************************************)
 
-function TBionXProfileFile.GetBoostLevel: integer;
+function TBionXProfileFile.GetBoostLevel: double;
 begin
-  Result := ReadInteger ( SECTION_BOOST, ENTRY_BOOST_LEVEL, -1 );
+  Result := ReadFloat ( SECTION_BOOST, ENTRY_BOOST_LEVEL, -1 );
 end;
 
-procedure TBionXProfileFile.SetBoostLevel ( AValue: integer ) ;
+procedure TBionXProfileFile.SetBoostLevel ( AValue: double ) ;
 begin
-  WriteInteger ( SECTION_BOOST, ENTRY_BOOST_LEVEL, AValue );
+  WriteFloat ( SECTION_BOOST, ENTRY_BOOST_LEVEL, AValue );
+end;
+
+(*----------------------------------------------------------------------------*)
+
+function TBionXProfileFile.GetBoostDisplay: integer;
+begin
+  Result := ReadInteger ( SECTION_BOOST, ENTRY_BOOST_DISPLAY, -1 );
+end;
+
+procedure TBionXProfileFile.SetBoostDisplay ( AValue: integer ) ;
+begin
+  WriteInteger ( SECTION_BOOST, ENTRY_BOOST_DISPLAY, AValue );
 end;
 
 

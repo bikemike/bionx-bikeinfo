@@ -22,7 +22,7 @@ unit CANAdapter;
 interface
 
 uses
-  Classes, SysUtils;
+  SysUtils;
 
   // this is an abstract wrapper class for a CAN bus adapter.
   // It's methods are used by the bionxcomponents to access the bus.
@@ -38,16 +38,16 @@ type
   PCANAdapter = ^TCANAdapter;
   TCANAdapter = class ( TObject )
   private
-    FLogMsg : TLogMsg;
   protected
-    procedure LogMsg ( const LogMsg : string );
-    property OnLogMsg : TLogMsg read FLogMsg write FLogMsg;
   public
+
     function Connect : boolean; virtual; abstract;
     procedure Disconnect; virtual; abstract;
 
     function ReadByte ( Id : byte; Reg : byte ) : byte; virtual; abstract;
     procedure WriteByte ( Id : byte; Reg : byte; Value : byte ); virtual; abstract;
+
+
   end;
 
 
@@ -56,11 +56,6 @@ type
 
 implementation
 
-procedure TCANAdapter.LogMsg ( const LogMsg : string );
-begin
-  if assigned ( FLogMsg ) then
-    FLogMsg ( LogMsg );
-end;
 
 end.
 
