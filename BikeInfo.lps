@@ -2,44 +2,36 @@
 <CONFIG>
   <ProjectSession>
     <PathDelim Value="\"/>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <BuildModes Active="Release"/>
-    <Units Count="37">
+    <Units Count="40">
       <Unit0>
         <Filename Value="BikeInfo.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="BikeInfo"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="47" Y="8"/>
+        <CursorPos X="138" Y="22"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="tinyCAN\source\TinyCanDrv.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="TinyCanDrv"/>
-        <EditorIndex Value="3"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="210"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="42"/>
+        <CursorPos X="20" Y="70"/>
         <UsageCount Value="202"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="source\BionX.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="BionX"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="4769"/>
-        <CursorPos X="33" Y="4802"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="7031"/>
+        <CursorPos X="43" Y="7069"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
-          <WindowIndex Value="0"/>
-          <TopLine Value="3205"/>
-          <CursorPos X="7" Y="3235"/>
+          <EditorIndex Value="-1"/>
+          <TopLine Value="6969"/>
+          <CursorPos Y="6990"/>
         </ExtraEditor1>
         <UsageCount Value="202"/>
         <Loaded Value="True"/>
@@ -47,7 +39,6 @@
       <Unit3>
         <Filename Value="source\fmMain.lfm"/>
         <IsPartOfProject Value="True"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="5646"/>
         <CursorPos X="10" Y="5668"/>
         <UsageCount Value="202"/>
@@ -59,12 +50,8 @@
         <ComponentName Value="frmBionXMain"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="fmMain"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="2749"/>
-        <CursorPos X="3" Y="2772"/>
+        <CursorPos X="5" Y="32"/>
         <UsageCount Value="202"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -72,394 +59,411 @@
       <Unit5>
         <Filename Value="source\TinyCANAdapter.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="TinyCANAdapter"/>
-        <EditorIndex Value="2"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="53"/>
-        <CursorPos X="1" Y="93"/>
+        <EditorIndex Value="1"/>
         <UsageCount Value="202"/>
         <Loaded Value="True"/>
       </Unit5>
       <Unit6>
-        <Filename Value="source\FileCANAdapter.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FileCANAdapter"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="34"/>
-        <UsageCount Value="202"/>
-      </Unit6>
-      <Unit7>
         <Filename Value="source\CANAdapter.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="CANAdapter"/>
-        <EditorIndex Value="4"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="21"/>
-        <CursorPos X="22" Y="47"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="25"/>
+        <CursorPos Y="53"/>
         <UsageCount Value="202"/>
         <Loaded Value="True"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="source\BionXProfiles.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="BionXProfiles"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="52"/>
-        <CursorPos X="14" Y="72"/>
-        <UsageCount Value="201"/>
-      </Unit8>
-      <Unit9>
+      </Unit6>
+      <Unit7>
         <Filename Value="source\fmcodes.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Codes"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="fmCodes"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="21" Y="30"/>
+        <EditorIndex Value="-1"/>
         <UsageCount Value="214"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="source\CANInterface.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="6"/>
+        <CursorPos X="125" Y="362"/>
+        <UsageCount Value="123"/>
+        <Loaded Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="source\BikeInfoIni.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="4"/>
+        <CursorPos X="122" Y="20"/>
+        <UsageCount Value="92"/>
       </Unit9>
       <Unit10>
+        <Filename Value="source\DLLCANAdapter.pas"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="196"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="source\FileCANAdapter.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="83"/>
+        <CursorPos X="119" Y="96"/>
+        <UsageCount Value="184"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="source\BionXProfiles.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="53"/>
+        <CursorPos X="85" Y="62"/>
+        <UsageCount Value="190"/>
+      </Unit12>
+      <Unit13>
         <Filename Value="fmMain.pas"/>
         <ComponentName Value="frmBionXMain"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="fmMain"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="519"/>
         <CursorPos X="79" Y="552"/>
-        <UsageCount Value="85"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="BionX.pas"/>
-        <UnitName Value="BionX"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="39"/>
-        <CursorPos X="1" Y="78"/>
-        <UsageCount Value="18"/>
-      </Unit11>
-      <Unit12>
-        <Filename Value="CANDriver.pas"/>
-        <UnitName Value="CANDriver"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="36"/>
-        <UsageCount Value="6"/>
-      </Unit12>
-      <Unit13>
-        <Filename Value="TinyCANAdapter.pas"/>
-        <UnitName Value="TinyCANAdapter"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="123"/>
-        <CursorPos X="41" Y="200"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="30"/>
       </Unit13>
       <Unit14>
-        <Filename Value="C:\Program Files (x86)\tiny_can\dev\Delphi\tiny-can\main.pas"/>
-        <HasResources Value="True"/>
-        <UnitName Value="main"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1070"/>
-        <CursorPos X="27" Y="1117"/>
-        <UsageCount Value="6"/>
+        <Filename Value="DrvTinyCAN.lpr"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="62"/>
+        <CursorPos X="30" Y="76"/>
+        <UsageCount Value="87"/>
       </Unit14>
       <Unit15>
-        <Filename Value="C:\lazarus\lcl\dialogs.pp"/>
-        <UnitName Value="Dialogs"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="480"/>
-        <CursorPos X="13" Y="496"/>
-        <UsageCount Value="8"/>
+        <Filename Value="DrvXLBCAN.lps"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="1"/>
+        <DefaultSyntaxHighlighter Value="XML"/>
       </Unit15>
       <Unit16>
-        <Filename Value="C:\lazarus\lcl\forms.pp"/>
-        <UnitName Value="Forms"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="350"/>
-        <CursorPos X="3" Y="372"/>
-        <UsageCount Value="8"/>
+        <Filename Value="DrvXLBCAN.lpr"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="3"/>
+        <CursorPos X="12" Y="26"/>
+        <UsageCount Value="102"/>
+        <Loaded Value="True"/>
       </Unit16>
       <Unit17>
-        <Filename Value="C:\lazarus\lcl\include\wincontrol.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="6304"/>
-        <CursorPos X="1" Y="6320"/>
-        <UsageCount Value="8"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\inc\dynlibs.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="25"/>
+        <CursorPos Y="45"/>
+        <UsageCount Value="3"/>
       </Unit17>
       <Unit18>
-        <Filename Value="C:\lazarus\lcl\controls.pp"/>
-        <UnitName Value="Controls"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="2181"/>
-        <CursorPos X="3" Y="2203"/>
-        <UsageCount Value="1"/>
+        <Filename Value="source\fmSerialPort.pas"/>
+        <ComponentName Value="frmSerialPort"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="25"/>
+        <CursorPos Y="40"/>
+        <UsageCount Value="47"/>
       </Unit18>
       <Unit19>
-        <Filename Value="C:\lazarus\lcl\include\control.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="3224"/>
-        <CursorPos X="1" Y="3260"/>
-        <UsageCount Value="6"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\inc\systemh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="88"/>
+        <CursorPos X="3" Y="108"/>
+        <UsageCount Value="3"/>
       </Unit19>
       <Unit20>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\inc\systemh.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="375"/>
-        <CursorPos X="3" Y="307"/>
-        <UsageCount Value="6"/>
+        <Filename Value="C:\Program Files (x86)\tiny_can\dev\Delphi\tiny-can\FilterMsg.pas"/>
+        <HasResources Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="168"/>
+        <CursorPos X="77" Y="208"/>
+        <UsageCount Value="3"/>
       </Unit20>
       <Unit21>
-        <Filename Value="C:\lazarus\components\ZVDateTimeCtrls-1.4\zvdatetimepicker.pas"/>
-        <UnitName Value="ZVDateTimePicker"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="25"/>
-        <CursorPos X="32" Y="58"/>
-        <UsageCount Value="8"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1662"/>
+        <CursorPos X="23" Y="1682"/>
+        <UsageCount Value="4"/>
       </Unit21>
       <Unit22>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\objpas\math.pp"/>
-        <UnitName Value="math"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="21"/>
-        <CursorPos X="7" Y="43"/>
-        <UsageCount Value="6"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\objpas\classes\lists.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="818"/>
+        <CursorPos X="5" Y="819"/>
+        <UsageCount Value="3"/>
       </Unit22>
       <Unit23>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\objpas\classes\classesh.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1553"/>
-        <CursorPos X="3" Y="1549"/>
-        <UsageCount Value="32"/>
+        <Filename Value="source\XLBCANAdapter.pas"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="46"/>
+        <CursorPos X="86" Y="17"/>
+        <UsageCount Value="64"/>
+        <Loaded Value="True"/>
       </Unit23>
       <Unit24>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\objpas\sysutils\datih.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="7"/>
-        <CursorPos X="14" Y="28"/>
-        <UsageCount Value="9"/>
+        <Filename Value="source\MyCANAdapter.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="6" Y="14"/>
+        <UsageCount Value="23"/>
       </Unit24>
       <Unit25>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\packages\fcl-base\src\contnrs.pp"/>
-        <UnitName Value="contnrs"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="283"/>
-        <CursorPos X="3" Y="129"/>
-        <UsageCount Value="9"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\inc\objpash.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="168"/>
+        <CursorPos X="8" Y="188"/>
+        <UsageCount Value="10"/>
       </Unit25>
       <Unit26>
-        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
-        <UnitName Value="ComCtrls"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="473"/>
-        <CursorPos X="14" Y="475"/>
-        <UsageCount Value="1"/>
+        <Filename Value="..\3rdParty\synapse40\source\lib\synaser.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="893"/>
+        <CursorPos Y="921"/>
+        <UsageCount Value="12"/>
       </Unit26>
       <Unit27>
-        <Filename Value="C:\lazarus\lcl\include\customupdown.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="298"/>
-        <CursorPos X="50" Y="309"/>
-        <UsageCount Value="6"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\packages\fcl-base\src\inifiles.pp"/>
+        <UnitName Value="IniFiles"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="123"/>
+        <CursorPos X="3" Y="143"/>
+        <UsageCount Value="2"/>
       </Unit27>
       <Unit28>
-        <Filename Value="C:\lazarus\lcl\buttons.pp"/>
-        <UnitName Value="Buttons"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="236"/>
-        <CursorPos X="37" Y="258"/>
-        <UsageCount Value="1"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\objpas\sysutils\osutilsh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="28"/>
+        <CursorPos Y="50"/>
+        <UsageCount Value="2"/>
       </Unit28>
       <Unit29>
-        <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
-        <UnitName Value="StdCtrls"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="235"/>
-        <CursorPos X="18" Y="257"/>
-        <UsageCount Value="1"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\objpas\sysutils\osutil.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="106"/>
+        <CursorPos X="42" Y="132"/>
+        <UsageCount Value="2"/>
       </Unit29>
       <Unit30>
-        <Filename Value="C:\lazarus\lcl\spin.pp"/>
-        <UnitName Value="Spin"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="10"/>
-        <CursorPos X="37" Y="32"/>
-        <UsageCount Value="1"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\win\sysutils.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1215"/>
+        <CursorPos X="21" Y="1241"/>
+        <UsageCount Value="2"/>
       </Unit30>
       <Unit31>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\win32\classes.pp"/>
-        <UnitName Value="Classes"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="1"/>
-        <UsageCount Value="8"/>
+        <Filename Value="C:\lazarus\lcl\include\messagedialogs.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="274"/>
+        <CursorPos Y="295"/>
+        <UsageCount Value="2"/>
       </Unit31>
       <Unit32>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\objpas\typinfo.pp"/>
-        <UnitName Value="typinfo"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="405"/>
-        <CursorPos X="1" Y="288"/>
-        <UsageCount Value="17"/>
+        <Filename Value="DrvMyAdapter.lpr"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="68"/>
+        <CursorPos X="13" Y="93"/>
+        <UsageCount Value="6"/>
       </Unit32>
       <Unit33>
-        <Filename Value="..\Devo7\source\Devo7Data.pas"/>
-        <UnitName Value="Devo7Data"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="42" Y="5"/>
-        <UsageCount Value="10"/>
+        <Filename Value="C:\lazarus\fpc\3.0.4\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1664"/>
+        <CursorPos X="26" Y="1682"/>
+        <UsageCount Value="3"/>
       </Unit33>
       <Unit34>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\objpas\sysutils\sysutilh.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="200"/>
-        <CursorPos X="15" Y="215"/>
-        <UsageCount Value="9"/>
+        <Filename Value="C:\lazarus\fpc\3.0.4\source\rtl\objpas\classes\classes.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="337"/>
+        <CursorPos X="5" Y="339"/>
+        <UsageCount Value="3"/>
       </Unit34>
       <Unit35>
-        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\objpas\sysutils\sysutils.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="543"/>
-        <CursorPos X="3" Y="546"/>
-        <UsageCount Value="9"/>
+        <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\objpas\classes\classes.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="337"/>
+        <CursorPos X="5" Y="339"/>
+        <UsageCount Value="4"/>
       </Unit35>
       <Unit36>
-        <Filename Value="C:\lazarus\lcl\include\interfacebase.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="34"/>
-        <CursorPos X="1" Y="54"/>
-        <UsageCount Value="9"/>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2187"/>
+        <CursorPos X="15" Y="2205"/>
+        <UsageCount Value="4"/>
       </Unit36>
+      <Unit37>
+        <Filename Value="..\tools\uScaleDPI.pas"/>
+        <UnitName Value="uscaledpi"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="20"/>
+        <CursorPos X="128" Y="25"/>
+        <UsageCount Value="18"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="..\3rdParty\virtualtreeview-4.8.7-R4\VirtualTrees.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="17192"/>
+        <CursorPos X="39" Y="17232"/>
+        <UsageCount Value="4"/>
+      </Unit38>
+      <Unit39>
+        <Filename Value="..\DxCluster\source\fmSetup.pas"/>
+        <ComponentName Value="frmSetup"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="4"/>
+      </Unit39>
     </Units>
-    <General>
-      <ActiveWindowIndexAtStart Value="0"/>
-    </General>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="939" Column="33" TopLine="903"/>
+        <Caret Line="1322" Column="76" TopLine="1291"/>
       </Position1>
       <Position2>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="1690" Column="58" TopLine="1657"/>
+        <Caret Line="1677" Column="68" TopLine="1645"/>
       </Position2>
       <Position3>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2123" Column="61" TopLine="2091"/>
+        <Caret Line="1690" Column="85" TopLine="1659"/>
       </Position3>
       <Position4>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2124" Column="79" TopLine="2092"/>
+        <Caret Line="1922" Column="64" TopLine="1890"/>
       </Position4>
       <Position5>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2125" Column="98" TopLine="2093"/>
+        <Caret Line="1959" Column="45" TopLine="1927"/>
       </Position5>
       <Position6>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2333" Column="3" TopLine="2299"/>
+        <Caret Line="1960" Column="62" TopLine="1928"/>
       </Position6>
       <Position7>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="72" Column="20" TopLine="53"/>
+        <Caret Line="2028" Column="79" TopLine="1996"/>
       </Position7>
       <Position8>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="116" Column="20" TopLine="84"/>
+        <Caret Line="2029" Column="71" TopLine="1997"/>
       </Position8>
       <Position9>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="704" Column="20" TopLine="672"/>
+        <Caret Line="2107" Column="52" TopLine="2075"/>
       </Position9>
       <Position10>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="1441" Column="57" TopLine="1409"/>
+        <Caret Line="2108" Column="79" TopLine="2076"/>
       </Position10>
       <Position11>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="1442" Column="73" TopLine="1410"/>
+        <Caret Line="2109" Column="52" TopLine="2077"/>
       </Position11>
       <Position12>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2124" Column="27" TopLine="2091"/>
+        <Caret Line="2110" Column="75" TopLine="2078"/>
       </Position12>
       <Position13>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2127" Column="27" TopLine="2104"/>
+        <Caret Line="2691" Column="67" TopLine="2659"/>
       </Position13>
       <Position14>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2328" Column="54" TopLine="2308"/>
+        <Caret Line="2692" Column="39" TopLine="2660"/>
       </Position14>
       <Position15>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2331" Column="62" TopLine="2308"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="2630" Column="50" TopLine="2595"/>
       </Position15>
       <Position16>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="source\BionX.pas"/>
       </Position16>
       <Position17>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="949" Column="25" TopLine="916"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="149" Column="26" TopLine="119"/>
       </Position17>
       <Position18>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="1690" Column="58" TopLine="1657"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="150" Column="27" TopLine="120"/>
       </Position18>
       <Position19>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2328" Column="47" TopLine="2308"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="151" Column="26" TopLine="121"/>
       </Position19>
       <Position20>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2329" Column="30" TopLine="2315"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="152" Column="27" TopLine="122"/>
       </Position20>
       <Position21>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2328" Column="30" TopLine="2314"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="291" Column="88" TopLine="261"/>
       </Position21>
       <Position22>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2327" Column="30" TopLine="2313"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="292" Column="79" TopLine="262"/>
       </Position22>
       <Position23>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="2331" Column="12" TopLine="2313"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="873" Column="26" TopLine="842"/>
       </Position23>
       <Position24>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="126" Column="27" TopLine="123"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="874" Column="27" TopLine="843"/>
       </Position24>
       <Position25>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="762" Column="1" TopLine="762"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="875" Column="26" TopLine="845"/>
       </Position25>
       <Position26>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="202" Column="1" TopLine="202"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="876" Column="27" TopLine="846"/>
       </Position26>
       <Position27>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="29" Column="42" TopLine="9"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="987" Column="79" TopLine="956"/>
       </Position27>
       <Position28>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="841" Column="3" TopLine="813"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="988" Column="108" TopLine="957"/>
       </Position28>
       <Position29>
-        <Filename Value="source\fmMain.pas"/>
-        <Caret Line="903" Column="3" TopLine="879"/>
+        <Filename Value="source\BionX.pas"/>
+        <Caret Line="1154" Column="27" TopLine="1138"/>
       </Position29>
       <Position30>
         <Filename Value="source\fmMain.pas"/>
-        <Caret Line="943" Column="1" TopLine="915"/>
+        <Caret Line="2692" Column="78" TopLine="2660"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>
   <Debugging>
+    <BreakPoints Count="3">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="source\FileCANAdapter.pas"/>
+        <Line Value="66"/>
+      </Item1>
+      <Item2>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="source\FileCANAdapter.pas"/>
+        <Line Value="120"/>
+      </Item2>
+      <Item3>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="source\FileCANAdapter.pas"/>
+        <Line Value="143"/>
+      </Item3>
+    </BreakPoints>
     <Watches Count="3">
       <Item1>
         <Expression Value="Result"/>
@@ -472,5 +476,4 @@
       </Item3>
     </Watches>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>

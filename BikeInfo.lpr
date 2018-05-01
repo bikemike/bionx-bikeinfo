@@ -7,13 +7,13 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, fmMain, BionX, CANAdapter, TinyCANAdapter,
-  FileCANAdapter, TinyCanDrv, BionXProfiles, fmCodes
-  { you can add units after this };
+  Forms, laz_synapse, fmMain, BionX, CANAdapter,
+  TinyCANAdapter, TinyCanDrv, fmCodes, CANInterface, BikeInfoIni;
 
 {$R *.res}
 
 begin
+  Application.Scaled := True;
 //  RequireDerivedFormResource := True;
   Application.Initialize;
   Application.CreateForm(TfrmBionXMain, frmBionXMain);

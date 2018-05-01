@@ -45,6 +45,7 @@
 { marked as read only in the bionx.xml. Decide yourself, what you need.  }
 
 unit BionX;
+{$HINTS OFF}
 
 {$mode objfpc}{$H+}
 
@@ -55,14 +56,15 @@ uses
   SysUtils,
 dialogs, controls, // used by untested only
   Classes,
-  CANAdapter;
+//  CANAdapter,
+  CANInterface;
 
 type
   { TBionXComponent }
   TBionXComponent = class ( TObject )
   private
     FCANId           : byte;
-    FCANAdapter      : PCANAdapter;
+    FCANIntf         : PCANInterface;
 
     // cache soft- and hardware versions
     FHardwareVersion : byte;
@@ -91,7 +93,8 @@ type
   protected
     function CheckVersion ( sw_since, sw_until, sub_since, sub_until, hw_since, hw_until : byte ) : boolean;
   public
-    constructor Create ( CANAdapter : PCANAdapter; ACANId : byte );
+//    constructor Create ( CANAdapter : PCANAdapter; ACANId : byte );
+    constructor Create ( CANIntf : PCANInterface; ACANId : byte );
 
     procedure CheckDeviceReady;
 
@@ -103,6 +106,7 @@ type
 
     // for evaluation purpose only
     property ByteValue [ Reg : byte ] : byte read GetByteValue write SetByteValue;
+    property WordValue [ Reg : byte ] : word read GetWordValue write SetWordValue;
   end;
 
   { TBionXConsole }
@@ -244,13 +248,12 @@ type
     // console.stats
     function GetStatsOdo: double;
     procedure SetStatsOdo ( AValue : double ) ;
-    function GetStatsChrono: TTime;
-    procedure SetStatsChrono ( AValue : TTime ) ;
+    function GetStatsChrono: LongWord;
+    procedure SetStatsChrono ( AValue : LongWord ) ;
     function GetStatsTrip: double;
     function GetStatsAvgSpeed: double;
 
   protected
-    function SetToSlaveMode : boolean;
 
   public
 
@@ -349,7 +352,7 @@ type
 
     // console.stats
     property StatsOdometer : double read GetStatsOdo write SetStatsOdo;
-    {-} property StatsChrono : TTime read GetStatsChrono write SetStatsChrono; // value cannot be written
+    {-} property StatsChrono : LongWord read GetStatsChrono write SetStatsChrono; // value cannot be written
     property StatsTrip : double read GetStatsTrip; // RO
     property StatsAverageSpeed : double read GetStatsAvgSpeed; // RO
   end;
@@ -418,7 +421,7 @@ type
     procedure SetStatusLeds(AValue: byte);
     function GetStatusVChannel ( CellNo : byte ) : double;
     function GetStatusVCell ( CellNo : byte ) : double;
-    function GetStatusPackTemperature ( PackNo : byte ) : shortint;
+    function GetStatusPackTemperature ( SensorNo : byte ) : shortint;
     function GetStatusCapSense : dword;
     procedure SetStatusCapSense ( AValue : dword ) ;
     function GetStatusCapSenseReference : dword;
@@ -537,9 +540,6 @@ type
     procedure SetRTCCtrl ( AValue : byte ) ;
     function GetRTCStatus : byte;
 
-
-
-
     // battery.gg
     function GetGasGageAI : double;
     function GetGasGageVoltage : double;
@@ -648,7 +648,6 @@ type
     procedure WriteChargerWordValue ( Addr : byte; AValue : word );
 
   public
-    procedure Shutdown;
 
     procedure UnlockProtection;
     procedure LockProtection;
@@ -708,7 +707,7 @@ type
     {*}    property StatusLeds : byte read GetStatusLeds write SetStatusLeds;
     property CellVoltage[CellNo : byte] : double read GetStatusVChannel;
     property SumCellVoltage[CellNo : byte] : double read GetStatusVCell;
-    property PackTemperature[PackNo : byte] : shortint read GetStatusPackTemperature;
+    property PackTemperature[SensorNo : byte] : shortint read GetStatusPackTemperature;
     {*}    property StatusCapSense : dword read GetStatusCapSense write SetStatusCapSense;
     {*}    property StatusCapSenseReference : dword read GetStatusCapSenseReference write SetStatusCapSenseReference;
     property EstimatedSOC : byte read GetStatusEstimatedSOC;
@@ -1078,7 +1077,7 @@ type
 
     // sensor.status
     function GetStatusVTorque: double;
-    function GetStatusCandence: double;
+    function GetStatusCadence: double;
     function GetStatusVOutput: double;
     function GetStatusPulseCounter: Byte;
 
@@ -1107,7 +1106,7 @@ type
 
     // sensor.status
     property TorqueVoltage : double read GetStatusVTorque; // write SetTorqueVoltage;
-    property Cadence : double read GetStatusCandence; // write SetCadence;
+    property Cadence : double read GetStatusCadence; // write SetCadence;
     property OutputVoltage : double read GetStatusVOutput; // write SetOutputVoltage;
     property PulseCounter : Byte read GetStatusPulseCounter; // write SetPulseCounter;
 
@@ -1124,15 +1123,16 @@ type
   end;
 
   { TBionXBike }
+
 type
   TBionXBike = class ( TObject )
   private
-    FCANAdapter: TCANAdapter;
+    FCANIntf   : TCANInterface;
     FConsole : TBionXConsole;
     FBattery : TBionxBattery;
     FMotor   : TBionXMotor;
     FSensor  : TBionXSensor;
-
+    FForceKeepAlive  : boolean;
     FKeepAliveThread : TKeepAliveThread;
     function GetKeepAlive: boolean;
     procedure SetKeepAlive ( AValue: boolean ) ;
@@ -1141,8 +1141,12 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Connect ( CANAdapter : TCANAdapter ) : boolean;
+    function Connect ( CANIntf : TCANInterface ) : boolean; overload;
     procedure Disconnect;
+
+    function SetToSlaveMode : boolean;
+
+    procedure Shutdown;
 
     // here we provide those Set-procedures as a member of TBionXBike,
     // which need settings in more than one register or device
@@ -1155,12 +1159,18 @@ type
 
     procedure SetBrakeSensor ( SensorEnabled : boolean; SensorType : byte );
 
+    property ForceKeepAlive : boolean read FForceKeepAlive write FForceKeepAlive;
     property KeepAlive : boolean read GetKeepAlive write SetKeepAlive;
 
     property Console : TBionXConsole read FConsole;
     property Battery : TBionxBattery read FBattery;
     property Motor : TBionXMotor read FMotor;
     property Sensor : TBionXSensor read FSensor;
+
+    // the CANAdapter is public for tests only. You should not use it from the
+    // main program. Implement a function call in this class or in Console..Sensor
+    // instead.
+    property CANIntf : TCANInterface read FCANIntf;
   end;
 
 type
@@ -1183,9 +1193,22 @@ function MotorStatusToStr ( Status : byte ) : string;
 function SensorModeToStr ( Mode : byte ) : string;
 function ConsoleCodeBitString ( bit : word ) : string;
 function ConsoleCodesToStr ( Code : longword ) : string;
-function GetCANIdName( CANId : byte ) : string;
+function _GetCANIdName( CANId : byte ) : string;
 
 implementation
+
+type
+  TVersionInfo = record
+    sw_since  : byte;
+    sw_until  : byte;
+    sub_since : byte;
+    sub_until : byte;
+    hw_since  : byte;
+    hw_until  : byte;
+  end;
+
+//const
+//  allVersions : TVersionInfo = ( sw_since : 0; sw_until : 255; sub_since : 0; sub_until : 255; hw_since : 0; hw_until : 255 );
 
 const
 
@@ -1207,7 +1230,11 @@ const
 //   LMD = Last Measured Discharge
 //   NIP = ?
 
-  ID_CONSOLE                                               = $48; // (CAN ID in slave mode)
+  {%REGION Console}
+  ID_CONSOLE_MASTER                                        = $08; // (CAN ID in master mode)
+  ID_CONSOLE_SLAVE                                         = $48; // (CAN ID in slave mode)
+//  ID_CONSOLE_RESPONSE                                      = $58;
+  ID_BIB                                                   = $58;
 
     // Reg 0..79 unused
 
@@ -1350,8 +1377,12 @@ const
     REG_CONSOLE_ASSIST_LEVEL_REKUPERATION_2                = $DF; // Reku level 2 [unit:%, factor:1,5625]
 
     // Reg 224..255 unused
+  {%ENDREGION Console}
 
+  {%REGION Battery}
   ID_BATTERY                                               = $10;
+
+//  ID_BATTERY_RESPONSE                                      = $08;
     REG_BATTERY_CONFIG_ALLOW_BUCKCHARGING_ON_BIKE          = $12; // Specifies if the battery can recharge in buck mode even on a bike. Make sure it is IMPOSSIBLE to have an accessory output before setting this to 1. 0: Disallow, 1: Allow
     REG_BATTERY_STATUS_CHARGER_MANAGER_STATUS              = $13; // Gives state of charging Mef: 0-Off, 1-Stand-by, 2-Charger, 3-Accessory, 4-Vdcin sense, 5-Overtemp, 6-Charge done, 7-Buck failed
     REG_BATTERY_CONFIG_WAKE_ON_POWERVOLTAGE                = $14; // Specifies if the battery should wake up automatically when a voltage is present on the vPower. A value of 0 disables the feature
@@ -1446,10 +1477,10 @@ const
     REG_BATTERY_STATUS_CHARGE_LEVEL                        = $61; // Batterylevel [unit:%, factor:6.6667]
     REG_BATTERY_CELLMON_BALANCER_ENABLED                   = $65; //
 
-    REG_BATTERY_STATUS_TEMPERATURE_PACK_1                  = $66; // [unit:C]
-    REG_BATTERY_STATUS_TEMPERATURE_PACK_2                  = $67; // !!! signed !!!
-    REG_BATTERY_STATUS_TEMPERATURE_PACK_3                  = $68;
-    REG_BATTERY_STATUS_TEMPERATURE_PACK_4                  = $69;
+    REG_BATTERY_STATUS_TEMPERATURE_SENSOR_1                = $66; // [unit:C]
+    REG_BATTERY_STATUS_TEMPERATURE_SENSOR_2                = $67; // !!! signed !!!
+    REG_BATTERY_STATUS_TEMPERATURE_SENSOR_3                = $68;
+    REG_BATTERY_STATUS_TEMPERATURE_SENSOR_4                = $69;
 
     REG_BATTERY_SN_CELLPACK_HI                             = $6A; // serial number cellpack
     REG_BATTERY_SN_CELLPACK_LO                             = $6B;
@@ -1459,7 +1490,7 @@ const
     REG_BATTERY_CELLMON_CHANNELDATA_LO                     = $6E; // and here
 
     REG_BATTERY_CELLMON_CALIBRATION_DATA_LO                = $6F; // cell calibration data, select cell via REG_BATTERY_CELLMON_CHANNEL register
-                                                                  // since hw 60, sw 103 16 bit values are provided, see REG_BATTERY_CALIBRATION_DATA_LO below
+                                                                  // since hw 60, sw 103 16 bit values are provided, see REG_BATTERY_CALIBRATION_DATA_HI below
     REG_BATTERY_PROTECT_UNLOCK                             = $71;
       BATTERY_PROTECT_LOCK_KEY                             = $00;
       BATTERY_PROTECT_UNLOCK_KEY                           = $AA;
@@ -1602,8 +1633,8 @@ const
     REG_I2C_CONFIG_CHARGER_VOLTAGE_CALIBRATION_VALUE_HI    = $A007; // Contains voltage calibration value of the charger. This value is written at each charge if bit 0 of _chargerCalibrationSourceFlags is set
     REG_I2C_CONFIG_CHARGER_VOLTAGE_CALIBRATION_VALUE_LO    = $A008;
 
-    REG_I2C_CONFIG_CHARGER_CURRENT_CALIBRATION_VALUE_HI    = $A007; // Contains current calibration value of the charger. This value is written at each charge if bit 1 of _chargerCalibrationSourceFlags is set
-    REG_I2C_CONFIG_CHARGER_CURRENT_CALIBRATION_VALUE_LO    = $A008;
+    REG_I2C_CONFIG_CHARGER_CURRENT_CALIBRATION_VALUE_HI    = $A009; // Contains current calibration value of the charger. This value is written at each charge if bit 1 of _chargerCalibrationSourceFlags is set
+    REG_I2C_CONFIG_CHARGER_CURRENT_CALIBRATION_VALUE_LO    = $A00A;
 
     REG_I2C_CONFIG_CHARGER_CALIBRATION_SOURCE_FLAGS        = $A00B; // Controls charger calibration values source. 0xFF:Autocalibration value, Bit0 set:Voltage calibration value from EEPROM, Bit1 set:Current calibration from EEPROM
 
@@ -1718,8 +1749,11 @@ const
     REG_CHARGER_CURRENT_CALIBRATION_LO                     = $47;
 
     REG_CHARGER_REV_CHARGER                                = $56; // -
+  {%ENDREGION}
 
+  {%REGION Motor}
   ID_MOTOR                                                 = $20;
+//  ID_MOTOR_RESPONSE                                        = $08;
     REG_MOTOR_ASSIST_LEVEL                                 = $09; // [unit:%, range:-100..100, factor:1.5625] !!! signed !!!
 
     REG_MOTOR_ASSIST_WALK_LEVEL                            = $0A; // Top level when assisting in walk mode [unit:%, factor:1.5625]
@@ -1849,7 +1883,10 @@ const
     REG_MOTOR_ASSIST_REGEN_INFLEX                          = $D2; // Speed from which regen is not attenuated [unit:rpm, range:5..?, factor:9.091]
 
     REG_MOTOR_ASSIST_MAXSPEED_DERATE_DELTA                 = $D3; // Speed before maxSpeed to start derating [unit:rpm, factor:9.091]
+  {%ENDREGION}
 
+
+  {%REGION Sensor}
   ID_SENSOR                                                = $68;
     REG_SENSOR_CONFIG_GAUGE_GAIN_HI                        = $10;
     REG_SENSOR_CONFIG_GAUGE_GAIN_LO                        = $11;
@@ -1896,11 +1933,35 @@ const
     REG_SENSOR_CONFIG_MODE                                 = $82; // 0-Thune, 1-Fag
 
     REG_SENSOR_REV_SUB                                     = $83; // software subversion
-
+  {%ENDREGION}
 
 const
   SECONDS_PER_DAY                                          = SecsPerDay; //60 * 60 * 24;
 
+(*
+type
+  TValueType = ( vt_byte, vt_word );
+type
+  TBionXRegisterRec = record
+    Device : byte;
+    Reg         : byte;
+    Len         : byte;
+    VType       : TValueType;
+    Factor      : double;
+    Version     : TVersionInfo;
+    units       : string[10];
+    description : ShortString;
+    protect     : byte;
+  end;
+
+
+//const
+//  TestRegRec : TBionXRegisterRec =
+//    ( Device : $48; Reg : $44; Len : 1; VType : vt_byte; Factor : 1.0; Version : ( sw_since : 0; sw_until : 255 ) );
+
+//  TestRegRec2 : TBionXRegisterRec =
+//    ( Device : $48; Reg : $44; Len : 1; VType : vt_byte; Factor : 1.0; Version : allVersions );
+*)
 (******************************************************************************)
 
 function BoolToStr ( b : boolean ) : string;
@@ -2198,7 +2259,8 @@ end;
 function GetDeviceName( CANId : byte ) : string;
 begin
   case CANId of
-    ID_CONSOLE :
+    ID_CONSOLE_MASTER,
+    ID_CONSOLE_SLAVE :
       Result := 'console';
     ID_BATTERY :
       Result := 'battery';
@@ -2206,30 +2268,29 @@ begin
       Result := 'motor';
     ID_SENSOR :
       Result := 'sensor';
-//    BIB :
-//      Result := 'bib';
+    ID_BIB :
+      Result := 'bib';
     else
-//      Result := 'UNKNOWN';
       Result := 'Id 0x'+IntToHex(CanId,2);
   end;
 end;
 
-function GetCANIdName( CANId : byte ) : string;
+function _GetCANIdName( CANId : byte ) : string;
 begin
   case CANId of
-    $08,
-    ID_CONSOLE :
-      Result := 'Con';
+    ID_CONSOLE_MASTER :
+      Result := 'ConM';
+    ID_CONSOLE_SLAVE :
+      Result := 'ConS';
     ID_BATTERY :
       Result := 'Batt';
     ID_MOTOR :
       Result := 'Mot';
     ID_SENSOR :
       Result := 'Sens';
-//    BIB :
-//      Result := 'bib';
+    ID_BIB :
+      Result := 'BIB';
     else
-//      Result := 'UNKNOWN';
       Result := '0x'+IntToHex(CanId,2);
   end;
 end;
@@ -2255,11 +2316,11 @@ end;
 (******************************************************************************)
 (******************************************************************************)
 
-constructor TBionXComponent.Create ( CANAdapter : PCANAdapter; ACANId : byte );
+constructor TBionXComponent.Create ( CANIntf : PCANInterface; ACANId : byte );
 begin
   inherited Create;
   FCANId := ACANId;
-  FCANAdapter := CANAdapter;
+  FCANIntf := CANIntf;
   FHardwareVersion := 0;
   FSoftwareVersion := 0;
   FSubVersion      := 0;
@@ -2267,12 +2328,14 @@ end;
 
 function TBionXComponent.GetByteValue ( Reg : byte ) : byte;
 begin
-  Result := FCANAdapter^.ReadByte ( FCANId, Reg );
+  if not FCANIntf^.ReadByte ( FCANId, Reg, Result ) then
+    raise  ECANError.Create ( FCANIntf^.LastError );
 end;
 
 procedure TBionXComponent.SetByteValue ( Reg : byte; Value : byte );
 begin
-  FCANAdapter^.WriteByte ( FCANId, Reg, Value );
+  if not FCANIntf^.WriteByte ( FCANId, Reg, Value ) then
+    raise  ECANError.Create ( FCANIntf^.LastError );
 end;
 
 function TBionXComponent.GetBoolValue ( Reg : byte ) : boolean;
@@ -2360,24 +2423,6 @@ end;
 (*                                                                            *)
 (******************************************************************************)
 (******************************************************************************)
-
-function TBionXConsole.SetToSlaveMode : boolean;
-var
-  Retries : integer;
-begin
-  Retries := 25;
-  repeat
-    try
-      dec ( Retries );
-      StatusSlave := true;
-      sleep ( 200 );
-      Result := StatusSlave;
-    except
-      if Retries = 0 then
-        raise;
-    end;
-  until Result or ( Retries = 0 )
-end;
 
 function TBionXConsole.GetSoftwareVersion: byte;
 begin
@@ -2547,15 +2592,20 @@ end;
 
 function TBionXConsole.GetStatusSlave: boolean;
 begin
-  if CheckVersion ( 48, 255, 0, 255, 0, 255 ) then
-    Result := GetBoolValue( REG_CONSOLE_STATUS_SLAVE )
-  else
-    Result := false;
+// bugfix connect error "could not read register A3 from node 48"
+// we should not try to read registers before the bus isn't in slave mode
+//  if CheckVersion ( 48, 255, 0, 255, 0, 255 ) then
+//    Result := GetBoolValue( REG_CONSOLE_STATUS_SLAVE )
+//  else
+//    Result := false;
+  Result := GetBoolValue( REG_CONSOLE_STATUS_SLAVE )
 end;
 
 procedure TBionXConsole.SetStatusSlave ( AValue: boolean ) ;
 begin
-  if CheckVersion ( 48, 255, 0, 255, 0, 255 ) then
+// bugfix connect error "could not read register A3 from node 48"
+// we should not try to read registers before the bus isn't in slave mode
+//  if CheckVersion ( 48, 255, 0, 255, 0, 255 ) then
     SetBoolValue( REG_CONSOLE_STATUS_SLAVE, AValue );
 end;
 
@@ -3330,26 +3380,30 @@ end;
 
 (*----------------------------------------------------------------------------*)
 
-function TBionXConsole.GetStatsChrono: TTime;
+function TBionXConsole.GetStatsChrono: LongWord;
+var
+  h, m, s : byte;
 begin
-  Result := EncodeTime ( GetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_HOUR ),
-                         GetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_MINUTE ),
-                         GetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_SECOND ),
-                         0
-                       );
+  // return the Chronotime in seconds
+  h := GetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_HOUR );
+  m := GetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_MINUTE );
+  s := GetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_SECOND );
+  Result := ( h * 60 + m ) * 60 + s;
 end;
 
-procedure TBionXConsole.SetStatsChrono ( AValue : TTime ) ;
+procedure TBionXConsole.SetStatsChrono ( AValue : LongWord ) ;
 var
-  Hour        : word;
-  Minute      : word;
-  Second      : word;
-  MilliSecond : word;
+  Hours        : word;
+  Minutes      : word;
+  Seconds      : word;
 begin
-  DecodeTime( AValue, Hour, Minute, Second, MilliSecond );
-  SetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_HOUR, Hour );
-  SetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_MINUTE, Minute );
-  SetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_SECOND, Second );
+  Seconds := AValue mod 60;
+  Minutes := AValue div 60;
+  Hours := Minutes div 60;
+  Minutes := Minutes mod 60;
+  SetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_HOUR, Hours );
+  SetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_MINUTE, Minutes );
+  SetByteValue ( REG_CONSOLE_STATISTIC_CHRONO_SECOND, Seconds );
 end;
 
 (*----------------------------------------------------------------------------*)
@@ -3524,13 +3578,6 @@ begin
     ProtectUnlock := BATTERY_PROTECT_LOCK_KEY;
     sleep(0);
   end;
-end;
-
-(******************************************************************************)
-
-procedure TBionXBattery.Shutdown;
-begin
-  ConfigShutdown := true;
 end;
 
 (******************************************************************************)
@@ -3739,7 +3786,9 @@ end;
 procedure TBionXBattery.SetTimerMasterShutdown ( AValue: word ) ;
 begin
   // be aware to set the delay too short, as the sytem may
-  // shutdown, before you are able to increase the value again
+  // shutdown, before you are able to increase the value again.
+  // I don't know how the BionX system handles this, but for
+  // security this program allows a minimum of 5 min ( 300 sec ) only
   if AValue >= 300 then
   begin
     if CheckVersion ( 75, 75, 0, 255, 0, 255 ) then
@@ -3956,11 +4005,11 @@ begin
     Result := 0;
 end;
 
-function TBionXBattery.GetStatusPackTemperature(PackNo : byte): shortint;
+function TBionXBattery.GetStatusPackTemperature(SensorNo : byte): shortint;
 begin
-  // PackNo: 1..PackParallel
+  // SensorNo: 1..4
   if CheckVersion ( 0, 255, 0, 255, 60, 255 ) then
-    Result := GetByteValue ( REG_BATTERY_STATUS_TEMPERATURE_PACK_1 + PackNo - 1 )
+    Result := GetByteValue ( REG_BATTERY_STATUS_TEMPERATURE_SENSOR_1 + SensorNo - 1 )
   else
     Result := 0;
 end;
@@ -4075,6 +4124,7 @@ begin
       try
         SetByteValue ( REG_BATTERY_CELLMON_CALIBRATION_DATA_HI, AValue shr 8 );
         SetByteValue ( REG_BATTERY_CELLMON_CALIBRATION_DATA_LO, AValue and $FF );
+        sleep(100);
       finally
         LockProtection;
       end;
@@ -4198,6 +4248,7 @@ begin
   if CheckVersion ( 0, 255, 0, 255, 60, 255 ) then
   begin
     SetByteValue ( REG_BATTERY_BRIDGE_I2C_REGADDR_DEVICE, ( AValue shr 8 ) );
+    sleep(100);
     SetByteValue ( REG_BATTERY_BRIDGE_I2C_REGADDR_REGISTER, ( AValue and $FF ) );
   end;
 end;
@@ -4760,6 +4811,7 @@ begin
      ( Level >= 1 ) and ( Level <= 9 ) then
   begin
     SetByteValue ( REG_BATTERY_STATISTIC_CHARGE_TIMES_CHANNEL, Level );
+    sleep(25);
     Result := GetWordValue ( REG_BATTERY_STATISTIC_CHARGE_TIMES_DATA_HI );
   end
   else
@@ -5447,7 +5499,9 @@ end;
 
 procedure TBionXBattery.SetConfigForceDone ( AValue: boolean ) ;
 begin
-  SetByteValue ( REG_BATTERY_CONFIG_FORCE_DONE, BATTERY_CONFIG_FORCE_DONE );
+  Untested;
+  if AValue then
+    SetByteValue ( REG_BATTERY_CONFIG_FORCE_DONE, BATTERY_CONFIG_FORCE_DONE );
 end;
 
 (*----------------------------------------------------------------------------*)
@@ -6793,7 +6847,7 @@ begin
 end;
 
 
-function TBionXSensor.GetStatusCandence: double;
+function TBionXSensor.GetStatusCadence: double;
 begin
 //??  Untested;
   if CheckVersion ( 15, 255, 0, 255, 0, 255 ) then
@@ -6879,12 +6933,12 @@ constructor TBionXBike.Create;
 begin
   inherited Create;
 
-  // create the BionXComponents with a pointer to bike's FCANAdapter,
+  // create the BionXComponents with a pointer to bike's FCANIntf,
   // which will be set and valid after successfull connect
-  FConsole := TBionXConsole.Create ( @FCANAdapter, ID_CONSOLE );
-  FMotor   := TBionXMotor.Create ( @FCANAdapter, ID_MOTOR );
-  FBattery := TBionxBattery.Create ( @FCANAdapter, ID_BATTERY );
-  FSensor  := TBionxSensor.Create ( @FCANAdapter, ID_SENSOR );
+  FConsole := TBionXConsole.Create ( @FCANIntf, ID_CONSOLE_SLAVE );
+  FMotor   := TBionXMotor.Create ( @FCANIntf, ID_MOTOR );
+  FBattery := TBionxBattery.Create ( @FCANIntf, ID_BATTERY );
+  FSensor  := TBionxSensor.Create ( @FCANIntf, ID_SENSOR );
 end;
 
 destructor TBionXBike.Destroy;
@@ -6897,38 +6951,59 @@ begin
   inherited;
 end;
 
-function TBionXBike.Connect ( CANAdapter : TCANAdapter ) : boolean;
+function TBionXBike.Connect ( CANIntf : TCANInterface ) : boolean;
 begin
-  Result := false;
-  FCANAdapter := CANAdapter;
-  try
-    if FCANAdapter.Connect then
-    try
-      Result := Console.SetToSlaveMode;
-      KeepAlive := true;
-    except
-      on E:Exception do
-        raise Exception.Create ( 'Error setting console to slave mode'#13+E.Message );
-    end;
-  except
-    on E:Exception do
-    begin
-      Disconnect; // free the FCANAdapter
-      raise Exception.Create ( 'Error connecting to CAN'#13+E.Message );
-    end;
+  FCANIntf := CANIntf;
+
+  Result := FCANIntf.Connect;
+  if Result then
+    KeepAlive := true
+  else
+  begin
+    MessageDlg ( 'Connect error', 'Error connecting to CAN'#13+FCANIntf.LastError, mtError, [mbOK], 0, mbOK );
+    Disconnect;
   end;
 end;
 
+
 procedure TBionXBike.Disconnect;
 begin
-  if assigned ( FCANAdapter ) then
+  if assigned ( FCANIntf ) then
   begin
     KeepAlive := false;
-    FCANAdapter.Disconnect;
-    FCANAdapter.Free;
-    FCANAdapter := nil;
+    FCANIntf.Disconnect;
+    FCANIntf.Free;
+    FCANIntf := nil;
   end;
 end;
+
+function TBionXBike.SetToSlaveMode : boolean;
+var
+  Retries : integer;
+begin
+  Result := false;
+  Retries := 3;
+  repeat
+    try
+      dec ( Retries );
+      Console.StatusSlave := true;
+      sleep ( 100 );
+      Result := Console.StatusSlave;
+    except
+      // the Console.StatusSlave get and set method may raise an exception,
+      // but do not report any error here. An error will be shown at the
+      // end of the retry loop, when setting slavemode failed
+    end;
+  until Result or ( Retries = 0 );
+  if not Result then
+    MessageDlg ( 'Set to slave error', 'Error setting console to slave mode'#13+FCANIntf.LastError, mtError, [mbOK], 0, mbOK )
+end;
+
+procedure TBionXBike.Shutdown;
+begin
+  Battery.ConfigShutdown := true;
+end;
+
 
 function TBionXBike.GetKeepAlive: boolean;
 begin
@@ -6937,8 +7012,10 @@ end;
 
 procedure TBionXBike.SetKeepAlive ( AValue: boolean ) ;
 begin
-  exit;
-  if Console.SoftwareVersion >= 63 then
+//  exit;
+//  if Console.SoftwareVersion >= 63 then
+//  if Battery.SoftwareVersion >= 112 then
+  if FForceKeepAlive then
   begin
     if KeepAlive <> AValue then
     begin

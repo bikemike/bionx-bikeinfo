@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <Title Value="BikeInfo"/>
+      <Scaled Value="True"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
+      <XPManifest>
+        <DpiAware Value="True"/>
+      </XPManifest>
       <Icon Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="2">
       <Item1 Name="Debug" Default="True"/>
       <Item2 Name="Release">
@@ -32,6 +33,8 @@
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
+            <TargetCPU Value="i386"/>
+            <TargetOS Value="win32"/>
             <Optimizations>
               <OptimizationLevel Value="0"/>
             </Optimizations>
@@ -47,12 +50,6 @@
               </Win32>
             </Options>
           </Linking>
-          <Other>
-            <CompilerMessages>
-              <MsgFileName Value=""/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
-          </Other>
         </CompilerOptions>
       </Item2>
     </BuildModes>
@@ -65,29 +62,29 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-d -x"/>
+        <CommandLineParams Value="-d -x -l"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="1">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="LCL"/>
+        <PackageName Value="laz_synapse"/>
       </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
     </RequiredPackages>
     <Units Count="10">
       <Unit0>
         <Filename Value="BikeInfo.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="BikeInfo"/>
       </Unit0>
       <Unit1>
         <Filename Value="tinyCAN\source\TinyCanDrv.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="TinyCanDrv"/>
       </Unit1>
       <Unit2>
         <Filename Value="source\BionX.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="BionX"/>
       </Unit2>
       <Unit3>
         <Filename Value="source\fmMain.lfm"/>
@@ -99,35 +96,30 @@
         <ComponentName Value="frmBionXMain"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="fmMain"/>
       </Unit4>
       <Unit5>
         <Filename Value="source\TinyCANAdapter.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="TinyCANAdapter"/>
       </Unit5>
       <Unit6>
-        <Filename Value="source\FileCANAdapter.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="FileCANAdapter"/>
-      </Unit6>
-      <Unit7>
         <Filename Value="source\CANAdapter.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="CANAdapter"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="source\BionXProfiles.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="BionXProfiles"/>
-      </Unit8>
-      <Unit9>
+      </Unit6>
+      <Unit7>
         <Filename Value="source\fmcodes.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Codes"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="fmCodes"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="source\CANInterface.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="source\BikeInfoIni.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit9>
     </Units>
   </ProjectOptions>
@@ -142,19 +134,20 @@
       <OtherUnitFiles Value="source;tinyCAN\source"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <CodeGeneration>
+      <TargetCPU Value="i386"/>
+      <TargetOS Value="win32"/>
+    </CodeGeneration>
     <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf2Set"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
         </Win32>
       </Options>
     </Linking>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="6">

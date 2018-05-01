@@ -26,27 +26,8 @@ interface
 
 uses
   Classes,
-  SyncObjs,
-  CANAdapter,
-  TinyCANDrv;
-
-type
-  THandleCANMessage = procedure ( aMsg : PCANMsg ) of object;
-
-type
-  TEventThread = class ( TThread )
-  private
-    FMsg      : TCanMsg;
-    FEvent : TSimpleEvent;
-    FHandleCANMessage : THandleCANMessage;
-  protected
-    procedure Execute; override;
-    procedure QueueCanMsg ( aMsg : PCanMsg );
-    function FetchCanMsg ( out aMsg : TCanMsg ) : boolean;
-  public
-    constructor Create ( aHandleCANMessage : THandleCANMessage );
-    destructor Destroy; override;
-  end;
+  TinyCANDrv,
+  CANAdapter;
 
 
   // implementation of a CAN bus driver wrapper using the TinyCAN with it's
@@ -56,66 +37,33 @@ type
 type
   TTinyCANAdapter = class ( TCANAdapter )
   private
-    FLogMsg  : TLogMsg;
     FTinyCAN : TTinyCAN;
-    FMsgHandler : TEventThread;
-    procedure LogMsg ( aMsg : PCANMsg );
-    procedure LogMsg ( const Msg : string );
-    function SendCanMsg ( Msg : TCanMsg ) : boolean;
-    function WaitForCanMsg ( var Msg : TCanMsg; Reg : byte ) : boolean;
+    FMessageHandler : TCANMessageHandler;
     procedure TinyCanRxDEvent (Sender: TObject; index: DWORD; msg: PCanMsg; count: Integer);
+
   protected
   public
-    constructor Create ( ALogMsg : TLogMsg );
+    constructor Create; override;
     destructor Destroy; override;
+
     function Connect : boolean; override;
     procedure Disconnect; override;
+    procedure ClearCANRxBuffer; override;
+    function SendCANMsg ( Id : DWORD; Len : byte; CANData : PCANData ) : boolean; override;
+    function ReadCANMsg ( out Id : DWORD; out Len : byte; CANData : PCANData ) : boolean; override;
 
-    function ReadByte ( Id : byte; Reg : byte ) : byte; override;
-    procedure WriteByte ( Id : byte; Reg : byte; Value : byte ); override;
-
-//    property _TinyCAN : TTinyCAN read FTinyCAN;
-
-    procedure StartMessageCapturing ( aHandleCANMessage : THandleCANMessage );
-    procedure StopMessageCapturing;
+    function StartCapturing ( aMessageHandler : TCANMessageHandler ) : boolean; override;
+    procedure StopCapturing; override;
   end;
 
 implementation
 uses
   SysUtils;
 
-const
-  MilliSecond = 1.0 / MSecsPerDay;
 
-procedure InitMsg ( out Msg : TCanMsg; Id : byte; Reg : byte );
-begin
-  fillchar ( Msg, sizeof ( Msg ), 0 );
-  Msg.Id := Id;
-  Msg.Data.Bytes[1] := Reg;
-end;
-
-procedure InitSetMsg ( out Msg : TCanMsg; Id : byte; Reg : byte; Value : byte );
-begin
-  InitMsg ( Msg, Id, Reg );
-  Msg.Flags := 4;
-  Msg.Data.Bytes[3] := Value;
-end;
-
-procedure InitGetMsg ( out Msg : TCanMsg; Id : byte; Reg : byte );
-begin
-  InitMsg ( Msg, Id, Reg );
-  Msg.Flags := 2;
-end;
-
-function MsgToStr ( Msg : TCanMsg ) : string;
-begin
-  Result := Format ( 'Id=%0.2x, Flags=%0.4x, Data=%0.2x %0.2x %0.2x %0.2x %0.2x %0.2x %0.2x %0.2x', [Msg.Id, Msg.Flags, Msg.Data.Bytes[0], Msg.Data.Bytes[1], Msg.Data.Bytes[2], Msg.Data.Bytes[3], Msg.Data.Bytes[4], Msg.Data.Bytes[5], Msg.Data.Bytes[6], Msg.Data.Bytes[7]] );
-end;
-
-constructor TTinyCANAdapter.Create ( ALogMsg : TLogMsg );
+constructor TTinyCANAdapter.Create;
 begin
   inherited Create;
-  FLogMsg  := aLogMsg;
   FTinyCAN := TTinyCAN.Create ( nil );
 end;
 
@@ -135,16 +83,18 @@ begin
   if errcode >= 0 then
   begin
     try
+      // start CAN bus, clear all FIFO and Errors
       errcode := FTinyCAN.CanSetMode( 0, OP_CAN_START, CAN_CMD_ALL_CLEAR );
       if errcode = 0 then
       begin
         errcode := FTinyCAN.CanGetDeviceStatus(0, @status);
         if errcode = 0 then
         begin
+          // enshure the device is open
           if (Status.DrvStatus >= DRV_STATUS_CAN_OPEN) then
           begin
             if (Status.CanStatus = CAN_STATUS_BUS_OFF) then
-              FTinyCAN.CanSetMode(0, OP_CAN_RESET, CAN_CMD_NONE);
+              FTinyCAN.CanSetMode(0, OP_CAN_RESET, CAN_CMD_ALL_CLEAR);
             Result := true;
           end
           else
@@ -176,25 +126,21 @@ begin
   FTinyCAN.DownDriver;
 end;
 
-procedure TTInyCANAdapter.LogMsg ( aMsg : PCANMsg );
+procedure TTinyCANAdapter.ClearCANRxBuffer;
 begin
-  ;
+  // the TinyCAN allows this smarter way to clear RX buffers
+  FTinyCAN.CanSetMode( 0, OP_CAN_NONE, CAN_CMD_RXD_FIFOS_CLEAR );
+  FTinyCAN.CanSetMode( 0, OP_CAN_NONE, CAN_CMD_RXD_OVERRUN_CLEAR );
+//  inherited;
 end;
 
-procedure TTInyCANAdapter.LogMsg ( const Msg : string );
-begin
-  if assigned ( FLogMsg ) then
-    FLogMsg ( Msg );
-end;
-
-
-function TTinyCANAdapter.SendCanMsg ( Msg : TCanMsg ) : boolean;
+function TTinyCANAdapter.SendCANMsg ( Id : DWORD; Len : byte; CANData : PCANData ) : boolean;
 var
   TimeoutTime : TDateTime;
   errcode     : integer;
+  TinyCANMsg  : TCANMsg;
 begin
   Result := false;
-  LogMsg ( 'Tx: ' + MsgToStr ( Msg ) );
   TimeoutTime := Now + 500 * MilliSecond;
   // note:
   // previous dll versions returned 0 on CanTransmit success,
@@ -203,12 +149,17 @@ begin
   // Therefore, we wait for the FIFO emtpty and then may test the
   // CanTransmit success >= 0 on all dll versions
   // >0 will be true with new dll
-  // =0 will be true woth old dll
+  // =0 will be true with old dll
   while ( FTinyCAN.CanTransmitGetCount(0) > 0 ) and
         ( TimeoutTime > Now )  do
     sleep ( 1 );
 
-  errcode := FTinyCAN.CanTransmit ( 0, @Msg, 1 );
+  fillchar ( TinyCANMsg, sizeof ( TCANMsg ), 0 );
+  TinyCANMsg.Id := Id;
+  TinyCANMsg.Flags := Len;
+  TinyCANMsg.Data.Bytes := CANData^;
+
+  errcode := FTinyCAN.CanTransmit ( 0, @TinyCANMsg, 1 );
   if ( errcode >= 0 ) then
   begin
     repeat
@@ -220,29 +171,26 @@ begin
     raise ECANError.CreateFmt ( 'cannot transmit message (%d)', [errcode] );
 end;
 
-function TTinyCANAdapter.WaitForCanMsg ( var Msg : TCanMsg; Reg : byte ) : boolean;
+
+function TTinyCANAdapter.ReadCANMsg ( out Id : DWORD; out Len : byte; CANData : PCANData ) : boolean;
 var
-  TimeoutTime : TTime;
+  TinyCANMsg  : TCANMsg;
   errcode     : integer;
 begin
   Result := false;
-  TimeoutTime := Now + 1500 * MilliSecond;
-
-  while ( TimeoutTime > Now ) and ( not Result ) do
+  if (FTinyCAN.CanReceiveGetCount(0) > 0) then
   begin
-    if (FTinyCAN.CanReceiveGetCount(0) > 0) then
+    errcode := FTinyCAN.CanReceive(0, @TinyCANMsg, 1);
+    if errcode = 1 then
     begin
-      errcode := FTinyCAN.CanReceive(0, @Msg, 1);
-      if errcode = 1 then
-      begin
-        LogMsg ( 'Rx: ' + MsgToStr ( Msg ) );
-        Result := ( ((Msg.Flags and FlagsCanLength) = 4) and (Msg.Data.Bytes[1] = Reg) )
-      end
-      else
-        raise ECANError.CreateFmt ( 'cannot receive message (%d)', [errcode] );
+      Id := TinyCANMsg.Id;
+      Len := TinyCANMsg.Flags and FlagsCanLength;
+      CANData^ := TinyCANMsg.Data.Bytes;
+//      LogCANMessage ( md_rx, Id, Len, CANData );
+      Result := true;
     end
     else
-      Sleep ( 1 );
+      raise ECANError.CreateFmt ( 'cannot receive message (%d)', [errcode] );
   end;
 end;
 
@@ -254,109 +202,29 @@ begin
   begin
     for i:=1 to count do
     begin
-      FMsgHandler.QueueCanMsg( msg );
+      FMessageHandler ( msg^.Id, msg^.Flags and $0F, @msg^.Data );
       inc(msg);
     end;
   end
-//  else
-//    FMsgs.Add ( 'Rx: Idx 0 '+MsgToStr ( Msg^ ) );
 end;
 
-function TTinyCANAdapter.ReadByte ( Id : byte; Reg : byte ) : byte;
-var
-  Msg : TCanMsg;
+
+function TTinyCANAdapter.StartCapturing ( aMessageHandler : TCANMessageHandler ) : boolean;
 begin
-  // empty the TinyCAN Rx buffers.
-  FTinyCAN.CanSetMode( 0, OP_CAN_NONE, CAN_CMD_RXD_FIFOS_CLEAR );
-  FTinyCAN.CanReceiveClear(0);
-
-  Result := 0;
-  InitGetMsg ( Msg, Id, Reg );
-
-  try
-    if SendCanMsg ( Msg ) then
-    begin
-      // we have cleaned the Rx buffer above. One of the next messages should be
-      // the answer, we are waiting for
-      if WaitForCanMsg ( Msg, Reg ) then
-        Result := Msg.Data.Bytes[3]
-      else
-        raise ECANError.CreateFmt ( 'no response from node %0.2x', [Id] );
-    end
-    else
-      raise ECANError.CreateFmt ( 'could not send request to node %0.2x', [Id] );
-  except
-    on E:Exception do
-      raise ECANError.CreateFmt ( 'could not read register %0.2x from node %0.2x'#13+E.Message, [Reg, Id] );
-  end;
-end;
-
-procedure TTinyCANAdapter.WriteByte ( Id : byte; Reg : byte; Value : byte );
-var
-  Msg : TCanMsg;
-begin
-  try
-    InitSetMsg ( Msg, Id, Reg, Value );
-    if not SendCanMsg ( Msg ) then
-      raise ECANError.CreateFmt ( 'could not send value to node %0.2x', [Id]);
-  except
-    on E:Exception do
-      raise ECANError.CreateFmt ( 'could not write register %0.2x to node %0.2x'#13+E.Message, [Reg, Id] );
-  end;
-end;
-
-procedure TTinyCANAdapter.StartMessageCapturing ( aHandleCANMessage : THandleCANMessage );
-begin
-  FMsgHandler := TEventThread.Create ( aHandleCANMessage );
-
+  FMessageHandler := aMessageHandler;
   FTinyCAN.OnCanRxDEvent:= @TinyCanRxDEvent;
   FTinyCAN.CanSetEvents( [RX_MESSAGES_EVENT] );
+  Result := true;
 end;
 
-procedure TTinyCANAdapter.StopMessageCapturing;
+
+procedure TTinyCANAdapter.StopCapturing;
 begin
   FTinyCAN.CanSetEvents( [] );
   FTinyCAN.OnCanRxDEvent:= nil;
-
-  FMsgHandler.Terminate;
 end;
 
-constructor TEventThread.Create ( aHandleCANMessage : THandleCANMessage );
-begin
-  inherited Create ( false );
-  FHandleCANMessage := aHandleCANMessage;
-  FreeOnTerminate := true;
-  FEvent := TSimpleEvent.Create;
-end;
 
-destructor TEventThread.Destroy;
-begin
-  FEvent.Free;
-  inherited;
-end;
-
-procedure TEventThread.QueueCanMsg ( aMsg : PCanMsg );
-begin
-  FMsg := aMsg^;
-  FEvent.SetEvent;
-end;
-
-function TEventThread.FetchCanMsg ( out aMsg : TCanMsg ) : boolean;
-begin
-  aMsg := FMsg;
-end;
-
-procedure TEventThread.Execute;
-begin
-  while not Terminated do
-  begin
-    if FEvent.WaitFor( 1 ) = wrSignaled then
-    begin
-      FHandleCANMessage ( @FMsg );
-      FEvent.ResetEvent;
-    end;
-  end;
-end;
 
 end.
 

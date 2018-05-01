@@ -24,11 +24,13 @@ unit fmMain;
 
 interface
 
-uses  tinycandrv,
-//  TypInfo,
-  Graphics, Classes, SysUtils, FileUtil, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Controls, Spin, Buttons, Menus, EditBtn,
-  BionX, CANAdapter, TinyCANAdapter, FileCANAdapter;
+uses
+  Graphics, Classes, SysUtils, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
+  Controls, Spin, Buttons, Menus, EditBtn, BikeInfoIni, BionX,
+  CANInterface,
+  CANAdapter,
+  XLBCANAdapter,
+  TinyCANAdapter;
 
 
 { TfrmBionXMain }
@@ -68,7 +70,6 @@ type
     cbBatteryConfigAllowBuckChargingOnBike: TComboBox;
     cbBatteryConfigAccessoryMounted: TComboBox;
     cbBatteryConfigAccessoryEnabled: TComboBox;
-    cbBatteryConfigForceDone: TComboBox;
     edBatteryCalibCalibration01: TFloatSpinEdit;
     edBatteryCalibCalibration02: TFloatSpinEdit;
     edBatteryCalibCalibration03: TFloatSpinEdit;
@@ -381,7 +382,6 @@ type
     Label318: TLabel;
     Label319: TLabel;
     Label320: TLabel;
-    Label321: TLabel;
     Label322: TLabel;
     Label323: TLabel;
     Label324: TLabel;
@@ -441,7 +441,7 @@ type
     Label69: TLabel;
     Label7: TLabel;
     Label8: TLabel;
-    mmLog: TMemo;
+    mmDebug: TMemo;
     pnlSensorButtons: TPanel;
     scbBattery: TScrollBox;
     scbMotor: TScrollBox;
@@ -470,17 +470,13 @@ type
     btnConnect: TBitBtn;
     btnDisconnect: TBitBtn;
     btnShutdown: TBitBtn;
-    pnlFileAdapter: TPanel;
-    btnSaveToFile: TBitBtn;
-    cbAdapter: TComboBox;
-    Label29: TLabel;
     Label32 : TLabel;
     edAutoShutdownDelay : TSpinEdit;
     sdInfo : TSaveDialog;
     btnInfoSave : TSpeedButton;
     btnInfoClear : TSpeedButton;
     pnlTest : TPanel;
-    btnLogClear : TButton;
+    btnDebugClear : TButton;
     Button1 : TButton;
     gbAccessory : TGroupBox;
     Label37 : TLabel;
@@ -698,9 +694,52 @@ type
     edTorqueSensorSpeedGain: TFloatSpinEdit;
     Label50: TLabel;
     Label54: TLabel;
-    DateEdit1: TDateEdit;
     edBatteryRTCTime2: TEdit;
     edBatteryRTCLastChargeTimeStamp2: TEdit;
+    cbAdapter: TComboBox;
+    Label29: TLabel;
+    btnSaveToFile: TBitBtn;
+    edBatteryCellVoltage01: TEdit;
+    Label247: TLabel;
+    Label248: TLabel;
+    edBatteryCellVoltage02: TEdit;
+    Label249: TLabel;
+    edBatteryCellVoltage03: TEdit;
+    edBatteryCellVoltage04: TEdit;
+    Label255: TLabel;
+    edBatteryCellVoltage05: TEdit;
+    Label256: TLabel;
+    edBatteryCellVoltage06: TEdit;
+    Label259: TLabel;
+    edBatteryCellVoltage07: TEdit;
+    Label260: TLabel;
+    edBatteryCellVoltage08: TEdit;
+    Label261: TLabel;
+    edBatteryCellVoltage09: TEdit;
+    Label262: TLabel;
+    edBatteryCellVoltage10: TEdit;
+    Label263: TLabel;
+    edBatteryCellVoltage11: TEdit;
+    Label264: TLabel;
+    edBatteryCellVoltage12: TEdit;
+    Label265: TLabel;
+    edBatteryCellVoltage13: TEdit;
+    Label266: TLabel;
+    tsCapture: TTabSheet;
+    pnlTest1: TPanel;
+    btnCaptureClear: TButton;
+    mmCapture: TMemo;
+    pnlCapture: TPanel;
+    Button3: TButton;
+    btnSetForceDone: TButton;
+    tsCANLog: TTabSheet;
+    btnLogClear: TButton;
+    mmLog: TMemo;
+    pnlSettings: TPanel;
+    pnlTuning: TPanel;
+    Button4: TButton;
+    btnCaptureStart: TButton;
+    btnCaptureStop: TButton;
     procedure BitBtn1Click ( Sender: TObject ) ;
     procedure btnAboutClick ( Sender: TObject ) ;
     procedure btnApplySettingsClick ( Sender: TObject ) ;
@@ -709,8 +748,7 @@ type
     procedure btnMotorUnlockClick(Sender: TObject);
     procedure btnReadTuningClick ( Sender: TObject ) ;
     procedure btnShutdownClick ( Sender: TObject ) ;
-    procedure Button1Click(Sender: TObject);
-    procedure btnLogClearClick(Sender: TObject);
+    procedure btnDebugClearClick(Sender: TObject);
     procedure btnConnectClick(Sender: TObject);
     procedure btnDisconnectClick(Sender: TObject);
     procedure EditfieldChange(Sender: TObject);
@@ -722,7 +760,6 @@ type
     procedure btnInfoMotorClick(Sender: TObject);
     procedure btnSaveToFileClick(Sender: TObject);
     procedure btnInfoSaveClick ( Sender : TObject ) ;
-    procedure Button2Click ( Sender: TObject ) ;
     procedure btnReadBatteryClick ( Sender: TObject ) ;
     procedure btnApplyBatteryClick ( Sender: TObject ) ;
     procedure btnReadMotorClick ( Sender : TObject ) ;
@@ -736,11 +773,27 @@ type
     procedure CodesEditClick(Sender: TObject);
     procedure btnBatteryUnlockClick ( Sender: TObject ) ;
     procedure btnBatteryLockClick ( Sender: TObject ) ;
+    procedure FormShow ( Sender: TObject ) ;
+    procedure btnCaptureStartClick ( Sender: TObject ) ;
+    procedure btnCaptureStopClick ( Sender: TObject ) ;
+    procedure btnCaptureClearClick ( Sender: TObject ) ;
+    procedure Button3Click ( Sender: TObject ) ;
+    procedure btnSetForceDoneClick ( Sender: TObject ) ;
+    procedure Button1Click ( Sender: TObject ) ;
+    procedure Button4Click ( Sender: TObject ) ;
+    procedure FormHide ( Sender: TObject ) ;
   private
     { private declarations }
-    FBike : TBionXBike;
-    FSaveValues : TStringlist;
-    procedure HandleCANMessage ( Msg : PCANMsg );
+    FBikeInfoIni     : TBikeInfoIni;
+    FBike            : TBionXBike;
+    FSaveValues      : TStringlist;
+    FOptionDebug     : boolean;
+    FOptionNoSlave   : boolean;
+    FOptionExpert    : boolean;
+    FOptionKeepAlive : boolean;
+    FOptionCANLog    : boolean;
+
+    procedure CaptureMessage ( const s : string );
 
     procedure HandleException ( Sender : TObject; E : Exception);
 
@@ -757,9 +810,11 @@ type
 
     procedure ReadSettings;
     procedure WriteSettings;
+    procedure EnableSettingsControls ( Enable : boolean );
 
     procedure ReadTuning;
     procedure WriteTuning;
+    procedure EnableTuningControls ( Enable : boolean );
 
     procedure ReadConsole;
     procedure WriteConsole;
@@ -791,7 +846,7 @@ uses
 {$R *.lfm}
 
 const
-  Version = 76;
+  Version = 90;
 
 { TfrmBionXMain }
 
@@ -829,6 +884,15 @@ begin
   ed.Font.Color := clDefault;
   ed.Refresh;
 end;
+
+procedure SetControlValue ( ed : TCustomEditButton; Value : string; SaveValues : TStrings ); overload;
+begin
+  ed.Text := Value;
+  SaveValues.Values[ed.Name] := Value;
+  ed.Font.Color := clDefault;
+  ed.Refresh;
+end;
+
 (*
 procedure SetControlValue ( dt : TZVDateTimePicker; Mfd : TDateTime; Value : TDateTime; SaveValues : TStrings ); overload;
 begin
@@ -895,6 +959,11 @@ function CompareControlValue ( ed : TCustomEdit; SaveValues : TStrings ) : boole
 begin
   Result := ed.Text = SaveValues.Values[ed.Name];
 end;
+
+function CompareControlValue ( ed : TCustomEditButton; SaveValues : TStrings ) : boolean; overload;
+begin
+  Result := ed.Text = SaveValues.Values[ed.Name];
+end;
 (*
 function CompareControlValue ( dt : TZVDateTimePicker; SaveValues : TStrings ) : boolean; overload;
 begin
@@ -932,6 +1001,13 @@ begin
   ed.Font.Color := clDefault;
 end;
 
+function GetControlValue ( ed : TCustomEditButton; SaveValues : TStrings ) : string; overload;
+begin
+  Result :=ed.Text;
+  SaveValues.Values[ed.Name] := Result;
+  ed.Font.Color := clDefault;
+end;
+
 (*
 function GetControlValue ( dt : TZVDateTimePicker; SaveValues : TStrings ) : TDateTime; overload;
 begin
@@ -960,22 +1036,39 @@ end;
 
 procedure TfrmBionXMain.FormCreate ( Sender: TObject ) ;
 begin
+  // I do prefer the extension .ini for my config files
+  ConfigExtension := '.ini';
+
+  FBikeInfoIni := TBikeInfoIni.Create ( GetAppConfigFile(true) );
+
   btnAbout.Anchors := [akLeft, akTop];
   btnExit.Anchors := [akLeft, akTop];
+  btnSaveToFile.Anchors := [akLeft, akTop];
   btnInfoSave.Anchors := [akLeft, akTop];
   btnInfoClear.Anchors := [akLeft, akTop];
-  btnLogClear.Anchors := [akLeft, akTop];
-
-  //  http://wiki.lazarus.freepascal.org/High_DPI/de
-  ScaleBy ( Screen.PixelsPerInch, 96 );
+  btnDebugClear.Anchors := [akLeft, akTop];
+  btnCaptureClear.Anchors := [akLeft, akTop];
 
   btnAbout.Anchors := [akRight, akTop];
   btnExit.Anchors := [akRight, akTop];
+  btnSaveToFile.Anchors := [akRight, akTop];
   btnInfoSave.Anchors := [akRight, akTop];
   btnInfoClear.Anchors := [akRight, akTop];
-  btnLogClear.Anchors := [akRight, akTop];
+  btnDebugClear.Anchors := [akRight, akTop];
+  btnCaptureClear.Anchors := [akRight, akTop];
+
+  FOptionDebug := FindCmdLineSwitch ( 'd', true );
+  FOptionNoSlave := FindCmdLineSwitch ( 'n', true );
+  FOptionExpert := FindCmdLineSwitch ( 'x', true );
+  FOptionKeepAlive := FindCmdLineSwitch ( 'k', true );
+  FOptionCANLog := FindCmdLineSwitch ( 'l', true ) or
+                   FOptionDebug;
 
   Caption := Format ( Caption, [Version div 100, Version mod 100] );
+  if FOptionKeepAlive then
+    Caption := Caption + ', KeepAlive';
+  if FOptionNoSlave then
+    Caption := Caption + ', NoSlave';
 
   FSaveValues := TStringlist.Create;
 
@@ -984,20 +1077,42 @@ begin
   EnableControls ( false );
 
   // show the test tab on debug mode
-  if not FindCmdLineSwitch ( 'd', true ) then
+  if not FOptionDebug then
   begin
-    pnlFileAdapter.Visible := false;
+    btnSaveToFile.Visible := false;
     tsTests.TabVisible := false;
+    tsCapture.TabVisible := false;
   end;
 
   // show the expert tabs with cmdlineswitch only
-  if not FindCmdLineSwitch ( 'x', true ) then
+  if not FOptionExpert then
   begin
     tsBattery.TabVisible := false;
     tsMotor.TabVisible := false;
     tsConsole.TabVisible := false;
     tsSensor.TabVisible := false;
   end;
+
+  // the capture tab is for NoSlave operation only
+  if not FOptionNoSlave then
+  begin
+    tsCapture.TabVisible := false;
+  end;
+
+  // we cannot operate the console, when not in Slavemode
+  if FOptionNoSlave then
+  begin
+    tsConsole.TabVisible := false;
+    tsSettings.TabVisible := false;
+    tsTuning.TabVisible := false;
+    btnInfoConsole.Enabled := false;
+  end;
+
+  if not FOptionCANLog then
+  begin
+    tsCANLog.TabVisible := false;
+  end;
+
 
   Application.OnException := @HandleException;
 
@@ -1010,6 +1125,38 @@ end;
 procedure TfrmBionXMain.FormDestroy ( Sender : TObject ) ;
 begin
   FSaveValues.Free;
+  FBikeInfoIni.Free;
+end;
+
+procedure TfrmBionXMain.FormShow ( Sender: TObject ) ;
+var
+  sr : TSearchRec;
+  Adapter : string;
+  Idx     : integer;
+begin
+  // fill adapter list with available dll driver
+  // #0 in list is always the compiled-in TinyCAN
+  // #1 in list is always the compiled-in XLBAdapter
+  if FindFirst ( 'Drv*.dll', faAnyFile, sr ) = 0 then
+  try
+    repeat
+      cbAdapter.Items.Add ( sr.Name );
+    until FindNext ( sr ) <> 0;
+  finally
+    FindClose ( sr );
+  end;
+
+  // select last used adapter
+  Adapter := FBikeInfoIni.Adapter;
+  Idx := cbAdapter.Items.IndexOf( Adapter );
+  if Idx >= 0 then
+    cbAdapter.ItemIndex := Idx;
+end;
+
+procedure TfrmBionXMain.FormHide ( Sender: TObject ) ;
+begin
+  // remember last used adapter
+  FBikeInfoIni.Adapter := cbAdapter.Text;
 end;
 
 procedure TfrmBionXMain.HandleException ( Sender : TObject; E : Exception);
@@ -1033,12 +1180,12 @@ begin
   pnlMotorButtons.Enabled := Connected;
   pnlSensorButtons.Enabled := Connected;
 
-
-  EnableEditControls ( tsSettings, Connected );
-  EnableEditControls ( tsTuning, Connected );
+  EnableEditControls ( tsCapture, Connected );
 
   if not Connected then
   begin
+    EnableSettingsControls ( false );
+    EnableTuningControls ( false );
     EnableConsoleControls ( false );
     EnableBatteryControls ( false );
     EnableMotorControls ( false );
@@ -1048,11 +1195,9 @@ end;
 
 procedure TfrmBionXMain.LogMsg ( const s : string );
 begin
-//  if mmLog.Lines.Count < 50 then
-  mmLog.Lines.Add ( s );
-//  Application.ProcessMessages;
-
+  mmLog.Lines.Add ( FormatDateTime ( 'hh:nn:ss.zzz', Now ) + ' : '+s );
 end;
+
 
 // write a line to the info page
 procedure TfrmBionXMain.ShowValue ( const Value : string );
@@ -1093,6 +1238,17 @@ procedure TfrmBionXMain.ShowConsoleSettings;
       Mask := Mask shl 1;
     end;
     ShowValue ( '' );
+  end;
+
+  function PeriodToStr ( Seconds : LongWord ) : string;
+  var
+    h,m,s : word;
+  begin
+    s := Seconds mod 60;
+    m := Seconds div 60;
+    h := m div 60;
+    m := m mod 60;
+    Result := Format ( '%d:%0.2d:%0.2d', [ h, m, s ] );
   end;
 
 begin
@@ -1213,7 +1369,7 @@ begin
     ShowValue ( 'Odometer', '%0.1f Km', [ FBike.Console.StatsOdometer] );
     ShowValue ( 'Distance', '%0.1f Km', [ FBike.Console.StatsTrip] );
     ShowValue ( 'Average speed', '%0.1f Km/h', [ FBike.Console.StatsAverageSpeed] );
-    ShowValue ( 'Chrono', '%0s', [ TimeToStr(FBike.Console.StatsChrono)] );
+    ShowValue ( 'Chrono', '%0s', [ PeriodToStr(FBike.Console.StatsChrono)] );
     ShowValue ( 'Next service day', '%d', [ FBike.Console.ConfigServiceTimeStamp ] );
     ShowValue ( 'Next service odo', '%d', [ FBike.Console.ConfigServiceDistance ] );
     ShowValue ( '' );
@@ -1265,7 +1421,7 @@ var
       ShowValue ( 'Version', '%d', [ FBike.Battery.ChargerVersion ] );
       ShowValue ( 'Mode', '%s', [ ChargerModeToStr ( FBike.Battery.ChargerMode ) ] );
       ShowValue ( 'Charger manager status', '%s', [ ChargerStatusToStr ( FBike.Battery.ChargerManagerStatus ) ] );
-      ShowValue ( 'State flags', '0x%0.8x', [ FBike.Battery.ChargerStatusFlags ] );
+      ShowValue ( 'State flags', '0x%0.4x', [ FBike.Battery.ChargerStatusFlags ] );
       ShowValue ( 'Final voltage', '%0.3fV', [ FBike.Battery.ChargerFinalVoltage ] );
       ShowValue ( 'Charge current', '%0.3fA', [ FBike.Battery.ChargerCurrent ] );
       ShowValue ( 'Voltage calibration', '%0.3fV', [ FBike.Battery.ChargerVoltageCalibration ] );
@@ -1297,7 +1453,7 @@ var
     for i := 1 to packSerial do
       ShowValue ( Format ( '  Cell #%2d', [i]), '%10.3f %10.3f %10.3f', [ FBike.Battery.CellVoltage[i], FBike.Battery.SumCellVoltage[i], FBike.Battery.CalibCalibration[i] ] );
 
-    for i := 1 to packParallel do
+    for i := 1 to 4 do
       ShowValue ( Format ( 'Temperature pack #%d', [i] ), '%dC', [ FBike.Battery.PackTemperature [ i ] ]);
     ShowValue ( '' );
   end;
@@ -1362,6 +1518,8 @@ begin
     ShowValue ( '' );
     ShowValue ( 'Input voltage', '%0.2fV', [ FBike.Battery.InputVoltage ]);
     ShowValue ( 'Internal battery voltage', '%0.2fV', [ FBike.Battery.InternalBatteryVoltage ] );
+    ShowValue ( 'Power voltage', '%0.2fV', [ FBike.Battery.CurrentPowerVoltage ] );
+    ShowValue ( 'Control voltage', '%0.2fV', [ FBike.Battery.CurrentControlVoltage ] );
     ShowValue ( 'Console voltage', '%0.2fV', [ FBike.Battery.ConsoleVoltage ] );
     ShowValue ( '12V voltage', '%0.2fV', [ FBike.Battery.Voltage12V ] );
     ShowValue ( 'Accessory voltage reading', '%0.2fV', [ FBike.Battery.CurrentAccessoryVoltage ] );
@@ -1385,6 +1543,8 @@ begin
     ShowValue ( 'Deep sleep on inactivity count', '%d days', [ FBike.Battery.StatsDeepSleepInactivityCount ] );
     ShowValue ( 'Deep sleep on low SOC count', '%d days', [ FBike.Battery.StatsDeepSleepSOCLowCount ] );
     ShowValue ( 'Deep sleep on low voltage count', '%d days', [ FBike.Battery.StatsDeepSleepLowVoltageCount ] );
+    ShowValue ( '' );
+    ShowValue ( 'Status leds', '%d', [ FBike.Battery.StatusLeds ] );
     ShowValue ( '' );
 
     PrintCellInfo;
@@ -1420,8 +1580,8 @@ begin
     ShowValue ( 'Power voltage shutdown delay', '%ds', [ FBike.Battery.PowerOutputShutdownDelay ] );
     ShowValue ( 'System shutdown delay', '%ds', [ FBike.Battery.AutoShutdownDelay ] );
     ShowValue ( 'Enable internal battery voltage', '%s', [ BoolToStr ( FBike.Battery.EnableInternalBatteryVoltage ) ] );
-    ShowValue ( 'Max. power voltage regen curent', '%0.2fA', [ FBike.Battery.MaxPowervoltageRegenCurrent ] );
-    ShowValue ( 'Max. power voltage curent', '%0.2fA', [ FBike.Battery.MaxPowervoltageCurrent ] );
+    ShowValue ( 'Max. power voltage regen current', '%0.2fA', [ FBike.Battery.MaxPowervoltageRegenCurrent ] );
+    ShowValue ( 'Max. power voltage current', '%0.2fA', [ FBike.Battery.MaxPowervoltageCurrent ] );
     ShowValue ( 'Cap sense SOC mode', '%s', [ CapSenseSOCModeToStr ( FBike.Battery.CapSenseSOCMode ) ] );
     ShowValue ( 'Deep sleep on inactivity delay', '%d days', [ FBike.Battery.DeepSleepInactivityDelay ] );
     ShowValue ( 'Deep sleep on low SOC delay', '%d days', [ FBike.Battery.DeepSleepSOCLowDelay ] );
@@ -1477,6 +1637,7 @@ begin
 
     ShowValue ( 'Battery test button sensitivity', '%d', [ FBike.Battery.StatusCapSense ] );
     ShowValue ( 'Battery test button sensitivity reference', '%d', [ FBike.Battery.StatusCapSenseReference ] );
+
     ShowValue ( '' );
 
   finally
@@ -1528,14 +1689,16 @@ begin
     ShowValue ( 'Assist regen inflex', '%0.2frpm', [ FBike.Motor.AssistRegenInflex ] );
     ShowValue ( 'Assist max speed derate delta', '%0.2frpm', [ FBike.Motor.AssistMaxSpeedDerateDelta ] );
     ShowValue ( '' );
+    ShowValue ( 'Max. regen current', '%0.2fA', [ FBike.Motor.WordValue[$7C]/1000 ] );
+    ShowValue ( 'Max. discharge current', '%0.2fA', [ FBike.Motor.WordValue[$7A]/1000 ] );
+    ShowValue ( '' );
+    ShowValue ( '' );
 
     // Statistic & Status
     ShowValue ( '  Readings' );
     ShowValue ( '  --------' );
     ShowValue ( 'Odometer', '%dkm', [ FBike.Motor.StatsOdo ] );
     ShowValue ( 'Operating time', '%0.2fh', [ FBike.Motor.StatsChronoHours + FBike.Motor.StatsChronoSeconds/3600 ] );
-  //    ShowValue ( 'Chrono hours', '%dh', [ FBike.Motor.ChronoHours ] );
-  //    ShowValue ( 'Chrono seconds', '%ds', [ FBike.Motor.ChronoSeconds ] );
     ShowValue ( 'Max measured power voltage', '%0.2fV', [ FBike.Motor.StatsMaxVPower ] );
     ShowValue ( 'Max measured temperature', '%0.2f', [ FBike.Motor.StatsMaxVTemp ] );
     ShowValue ( '' );
@@ -1706,7 +1869,7 @@ begin
 
     // misc settings
     if not CompareControlValue ( edWheelCircumference, FSaveValues ) then
-      FBike.Console.GeometryCirc := GetControlValue ( edWheelCircumference, FSaveValues );
+      FBike.SetWheelCircumference( GetControlValue ( edWheelCircumference, FSaveValues ) );
     if not CompareControlValue ( edAutoShutdownDelay, FSaveValues ) then
       FBike.Battery.AutoShutdownDelay := GetControlValue ( edAutoShutdownDelay, FSaveValues );
     if not CompareControlValue ( edOdometer, FSaveValues ) then
@@ -1741,6 +1904,12 @@ begin
   finally
     FBike.KeepAlive := true;
   end;
+end;
+
+procedure TfrmBionXMain.EnableSettingsControls ( Enable : boolean );
+begin
+  EnableEditControls ( pnlSettings, Enable );
+  btnApplySettings.Enabled := Enable;
 end;
 
 (******************************************************************************)
@@ -1832,6 +2001,13 @@ begin
     FBike.KeepAlive := true;
   end;
 end;
+
+procedure TfrmBionXMain.EnableTuningControls ( Enable : boolean );
+begin
+  EnableEditControls ( pnlTuning, Enable );
+  btnApplyTuning.Enabled := Enable;
+end;
+
 
 (******************************************************************************)
 
@@ -2068,18 +2244,31 @@ begin
     // Calib
     SetControlValue ( edBatteryCalibCapSense, FBike.Battery.CalibCapsense, FSaveValues );
     SetControlValue ( edBatteryCalibCalibration01, FBike.Battery.CalibCalibration[1], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage01, Format ( '%0.3f', [FBike.Battery.CellVoltage[1]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration02, FBike.Battery.CalibCalibration[2], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage02, Format ( '%0.3f', [FBike.Battery.CellVoltage[2]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration03, FBike.Battery.CalibCalibration[3], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage03, Format ( '%0.3f', [FBike.Battery.CellVoltage[3]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration04, FBike.Battery.CalibCalibration[4], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage04, Format ( '%0.3f', [FBike.Battery.CellVoltage[4]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration05, FBike.Battery.CalibCalibration[5], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage05, Format ( '%0.3f', [FBike.Battery.CellVoltage[5]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration06, FBike.Battery.CalibCalibration[6], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage06, Format ( '%0.3f', [FBike.Battery.CellVoltage[6]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration07, FBike.Battery.CalibCalibration[7], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage07, Format ( '%0.3f', [FBike.Battery.CellVoltage[7]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration08, FBike.Battery.CalibCalibration[8], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage08, Format ( '%0.3f', [FBike.Battery.CellVoltage[8]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration09, FBike.Battery.CalibCalibration[9], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage09, Format ( '%0.3f', [FBike.Battery.CellVoltage[8]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration10, FBike.Battery.CalibCalibration[10], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage10, Format ( '%0.3f', [FBike.Battery.CellVoltage[10]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration11, FBike.Battery.CalibCalibration[11], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage11, Format ( '%0.3f', [FBike.Battery.CellVoltage[11]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration12, FBike.Battery.CalibCalibration[12], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage12, Format ( '%0.3f', [FBike.Battery.CellVoltage[12]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration13, FBike.Battery.CalibCalibration[13], FSaveValues );
+    SetControlValue ( edBatteryCellVoltage13, Format ( '%0.3f', [FBike.Battery.CellVoltage[13]] ), FSaveValues );
     SetControlValue ( edBatteryCalibCalibration3V3, FBike.Battery.CalibCalibration3V3, FSaveValues );
 
     // Stats
@@ -2123,10 +2312,8 @@ begin
     //RTC
     SetControlValue ( edBatteryRTCTime, FBike.Battery.RTCTime, FSaveValues );
       SetControlValue ( edBatteryRTCTime2, DateTimeToStr (FBike.Battery.RTCTimeDT), FSaveValues );
-//      SetControlValue ( dtBatteryRTCTime, FBike.Battery.ManufacturingDate, FBike.Battery.RTCTimeDT, FSaveValues );
     SetControlValue ( edBatteryRTCLastChargeTimeStamp, FBike.Battery.RTCLastChargeTimestamp, FSaveValues );
       SetControlValue ( edBatteryRTCLastChargeTimeStamp2, DateTimeToStr(FBike.Battery.RTCLastChargeTimestampDT), FSaveValues );
-//      SetControlValue ( dtBatteryRTCLastChargeTimeStamp, FBike.Battery.ManufacturingDate, FBike.Battery.RTCLastChargeTimestampDT, FSaveValues );
     SetControlValue ( edBatteryRTCCtrl, FBike.Battery.RTCControl, FSaveValues );
 
     // Gg
@@ -2160,7 +2347,6 @@ begin
     SetControlValue ( edBatteryConfigPackSerial, FBike.Battery.PackSerial, FSaveValues );
     SetControlValue ( edBatteryConfigPackParallel, FBike.Battery.PackParallel, FSaveValues );
     SetControlValue ( edBatteryConfigNAC, FBike.Battery.ConfigNAC, FSaveValues );
-    SetControlValue ( cbBatteryConfigForceDone, ord(FBike.Battery.ConfigForceDone), FSaveValues );
     SetControlValue ( cbBatteryConfigVPower, ord(FBike.Battery.EnablePowerVoltage), FSaveValues );
     SetControlValue ( cbBatteryConfigVControl, ord(FBike.Battery.EnableControlVoltage), FSaveValues );
     SetControlValue ( cbBatteryConfigVBattInt, ord(FBike.Battery.EnableInternalBatteryVoltage), FSaveValues );
@@ -2179,6 +2365,24 @@ end;
 procedure TfrmBionXMain.WriteBattery;
 var
   Flags : integer;
+
+  procedure ReadCellVoltages;
+  begin
+    SetControlValue ( edBatteryCellVoltage01, Format ( '%0.3f', [FBike.Battery.CellVoltage[1]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage02, Format ( '%0.3f', [FBike.Battery.CellVoltage[2]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage03, Format ( '%0.3f', [FBike.Battery.CellVoltage[3]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage04, Format ( '%0.3f', [FBike.Battery.CellVoltage[4]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage05, Format ( '%0.3f', [FBike.Battery.CellVoltage[5]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage06, Format ( '%0.3f', [FBike.Battery.CellVoltage[6]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage07, Format ( '%0.3f', [FBike.Battery.CellVoltage[7]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage08, Format ( '%0.3f', [FBike.Battery.CellVoltage[8]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage09, Format ( '%0.3f', [FBike.Battery.CellVoltage[8]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage10, Format ( '%0.3f', [FBike.Battery.CellVoltage[10]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage11, Format ( '%0.3f', [FBike.Battery.CellVoltage[11]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage12, Format ( '%0.3f', [FBike.Battery.CellVoltage[12]] ), FSaveValues );
+    SetControlValue ( edBatteryCellVoltage13, Format ( '%0.3f', [FBike.Battery.CellVoltage[13]] ), FSaveValues );
+  end;
+
 begin
   FBike.KeepAlive := false;
   try
@@ -2221,31 +2425,70 @@ begin
     if not CompareControlValue ( edBatteryCalibCapSense, FSaveValues ) then
       FBike.Battery.CalibCapsense := GetControlValue ( edBatteryCalibCapSense, FSaveValues );
     if not CompareControlValue ( edBatteryCalibCalibration01, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[1] := GetControlValue ( edBatteryCalibCalibration01, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration02, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[2] := GetControlValue ( edBatteryCalibCalibration02, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration03, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[3] := GetControlValue ( edBatteryCalibCalibration03, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration04, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[4] := GetControlValue ( edBatteryCalibCalibration04, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration05, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[5] := GetControlValue ( edBatteryCalibCalibration05, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration06, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[6] := GetControlValue ( edBatteryCalibCalibration06, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration07, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[7] := GetControlValue ( edBatteryCalibCalibration07, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration08, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[8] := GetControlValue ( edBatteryCalibCalibration08, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration09, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[9] := GetControlValue ( edBatteryCalibCalibration09, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration10, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[10] := GetControlValue ( edBatteryCalibCalibration10, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration11, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[11] := GetControlValue ( edBatteryCalibCalibration11, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration12, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[12] := GetControlValue ( edBatteryCalibCalibration12, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration13, FSaveValues ) then
+    begin
       FBike.Battery.CalibCalibration[13] := GetControlValue ( edBatteryCalibCalibration13, FSaveValues );
+      ReadCellVoltages;
+    end;
     if not CompareControlValue ( edBatteryCalibCalibration3V3, FSaveValues ) then
       FBike.Battery.CalibCalibration3V3 := GetControlValue ( edBatteryCalibCalibration3V3, FSaveValues );
 
@@ -2323,15 +2566,11 @@ begin
     //RTC
     if not CompareControlValue ( edBatteryRTCTime, FSaveValues ) then
       FBike.Battery.RTCTime := GetControlValue ( edBatteryRTCTime, FSaveValues );
-//    if not CompareControlValue ( dtBatteryRTCTime, FSaveValues ) then
-//      FBike.Battery.RTCTimeDT := GetControlValue ( dtBatteryRTCTime, FSaveValues );
     if not CompareControlValue ( edBatteryRTCTime2, FSaveValues ) then
       FBike.Battery.RTCTimeDT := StrToDateTime ( GetControlValue ( edBatteryRTCTime2, FSaveValues ) );
 
     if not CompareControlValue ( edBatteryRTCLastChargeTimeStamp, FSaveValues ) then
       FBike.Battery.RTCLastChargeTimestamp := GetControlValue ( edBatteryRTCLastChargeTimeStamp, FSaveValues );
-//    if not CompareControlValue ( dtBatteryRTCLastChargeTimeStamp, FSaveValues ) then
-//      FBike.Battery.RTCLastChargeTimestampDT := GetControlValue ( dtBatteryRTCLastChargeTimeStamp, FSaveValues );
     if not CompareControlValue ( edBatteryRTCLastChargeTimeStamp2, FSaveValues ) then
       FBike.Battery.RTCLastChargeTimestampDT := StrToDateTime ( GetControlValue ( edBatteryRTCLastChargeTimeStamp2, FSaveValues ) );
     if not CompareControlValue ( edBatteryRTCCtrl, FSaveValues ) then
@@ -2385,9 +2624,10 @@ begin
       FBike.Battery.AccessoryVoltage := GetControlValue ( edBatteryConfigAccessoryVoltage, FSaveValues );
     if not CompareControlValue ( edBatteryConfigILMD, FSaveValues ) then
       FBike.Battery.ConfigILMD := GetControlValue ( edBatteryConfigILMD, FSaveValues );
-
+(*
     // when one of these values are changed, they must be written BOTH
     // within an unlock session
+    // ??? true or not ???
     if not CompareControlValue ( edBatteryConfigMaxCharge, FSaveValues ) or
        not CompareControlValue ( edBatteryConfigMaxDischarge, FSaveValues ) then
     begin
@@ -2395,10 +2635,17 @@ begin
       try
         FBike.Battery.MaxPowervoltageRegenCurrent := GetControlValue ( edBatteryConfigMaxCharge, FSaveValues );
         FBike.Battery.MaxPowervoltageCurrent := GetControlValue ( edBatteryConfigMaxDischarge, FSaveValues );
+        sleep(100);
       finally
         FBike.Battery.LockProtection;
       end;
     end;
+*)
+
+    if not CompareControlValue ( edBatteryConfigMaxCharge, FSaveValues ) then
+      FBike.Battery.MaxPowervoltageRegenCurrent := GetControlValue ( edBatteryConfigMaxCharge, FSaveValues );
+    if not CompareControlValue ( edBatteryConfigMaxDischarge, FSaveValues ) then
+      FBike.Battery.MaxPowervoltageCurrent := GetControlValue ( edBatteryConfigMaxDischarge, FSaveValues );
 
     if not CompareControlValue ( edBatteryConfigCellCapacity, FSaveValues ) then
       FBike.Battery.CellCapacity := GetControlValue ( edBatteryConfigCellCapacity, FSaveValues );
@@ -2408,8 +2655,6 @@ begin
       FBike.Battery.PackParallel := GetControlValue ( edBatteryConfigPackParallel, FSaveValues );
     if not CompareControlValue ( edBatteryConfigNAC, FSaveValues ) then
       FBike.Battery.ConfigNAC := GetControlValue ( edBatteryConfigNAC, FSaveValues );
-    if not CompareControlValue ( cbBatteryConfigForceDone, FSaveValues ) then
-      FBike.Battery.ConfigForceDone := GetControlValue ( cbBatteryConfigForceDone, FSaveValues )=1;
     if not CompareControlValue ( cbBatteryConfigVPower, FSaveValues ) then
       FBike.Battery.EnablePowerVoltage := GetControlValue ( cbBatteryConfigVPower, FSaveValues )=1;
     if not CompareControlValue ( cbBatteryConfigVControl, FSaveValues ) then
@@ -2638,44 +2883,64 @@ end;
 
 procedure TfrmBionXMain.btnConnectClick(Sender: TObject);
 var
-  CANAdapter : TCANAdapter;
-
+  CANIntf    : TCANInterface;
 begin
   case cbAdapter.ItemIndex of
-    0 : CANAdapter := TTinyCANAdapter.Create ( @LogMsg );
-    1 : CANAdapter := TFileCANAdapter.Create;
+    0 :
+      CANIntf := TCANInterface.Create ( TTinyCANAdapter );
+    1 :
+      CANIntf := TCANInterface.Create ( TXLBCANAdapter );
+    else
+      CANIntf := TCANInterface.Create ( cbAdapter.Text );
   end;
 
+  if FOptionCANLog then
+    CANIntf.OnLogMsg := @LogMsg;
+
   FBike := TBionXBike.Create;
+
+  FBike.ForceKeepAlive := FOptionKeepAlive;
+
   try
+    {$ifndef UNIX}
+    Screen.Cursor := crHourGlass;
+    {$endif}
     try
-      {$ifndef UNIX}
-      Screen.Cursor := crHourGlass;
-      {$endif}
-      if FBike.Connect ( CANAdapter ) then
+      if FBike.Connect ( CANIntf ) then
       begin
         EnableControls ( true );
-        ReadSettings;
-        ReadTuning;
-//        EnableControls ( true );
+        if not FOptionNoSlave then
+        begin
+          if FBike.SetToSlaveMode then
+          begin
+            btnReadSettingsClick(nil);
+            btnReadTuningClick(nil);
+          end;
+        end;
+      end
+      else
+      begin
+        FreeAndNil ( FBike );
       end;
-    finally
-      {$ifndef UNIX}
-      Screen.Cursor := crDefault;
-      {$endif}
+    except
+      on E:Exception do
+      begin
+        FreeAndNil ( FBike );
+        raise;
+      end;
     end;
-  except
-    on E:Exception do
-    begin
-      FreeAndNil ( FBike );
-      raise;
-    end;
+
+  finally
+    {$ifndef UNIX}
+    Screen.Cursor := crDefault;
+    {$endif}
   end;
 end;
 
 procedure TfrmBionXMain.btnDisconnectClick(Sender: TObject);
 begin
   EnableControls ( false );
+
   if assigned ( FBike ) then
     FreeAndNil ( FBike );
 end;
@@ -2683,7 +2948,7 @@ end;
 procedure TfrmBionXMain.btnShutdownClick ( Sender: TObject ) ;
 begin
   if assigned ( FBike ) then
-    FBike.Battery.Shutdown;
+    FBike.Shutdown;
   btnDisconnectClick(nil);
 end;
 
@@ -2692,9 +2957,10 @@ end;
 // again by selecting adapter type "file". With this
 // we can do debugging offline
 // Start program with option -d to enable this feature
+
 procedure TfrmBionXMain.btnSaveToFileClick(Sender: TObject);
 var
-  FCA : TFileCANAdapter;
+  Intf : TCANinterface;
 
   procedure ReadValues ( Component : TBionXComponent );
   var
@@ -2705,7 +2971,7 @@ var
     begin
       try
         v := Component.ByteValue[i];
-        FCA.WriteByte ( Component.CANId, i,  v );
+        Intf.WriteByte( Component.CANId, i,  v );
         ShowValue ( Format ( 'Reg 0x%0.2x (%3d) = 0x%0.2x / %3d', [i, i, v, v] ));
       except
         on E:Exception do
@@ -2715,9 +2981,9 @@ var
   end;
 
 begin
-  FCA := TFileCANAdapter.Create;
+  Intf := TCANInterface.Create ( 'DrvFile.dll' );
   try
-    if FCA.Connect then
+    if Intf.Connect then
     begin
       try
         ShowValue ( 'Reading console' );
@@ -2730,13 +2996,14 @@ begin
         ReadValues ( FBike.Battery );
         ShowValue ( '' );
       finally
-        FCA.Disconnect;
+        Intf.Disconnect;
       end;
     end;
   finally
-    FCA.Free;
+    Intf.Free;
   end;
 end;
+
 
 procedure TfrmBionXMain.btnAboutClick ( Sender: TObject ) ;
 begin
@@ -2747,7 +3014,10 @@ begin
                + 'is distributed together with this program with courtesy of MHS Elektronik.'#13#13
                + 'This program is published without any warranty. Improper settings may damage your system.'#13'Use at your own risk.'#13#13
                + 'Increasing the speed limits may be against your local law and limit the use of your bike to non public areas.'#13#13
-               + 'Start program with option -x for more, but eXperimental setting features.'#13#13
+               + 'Commandline options:'#13
+               + '  -x : Extended, start with more, but experimental setting features.'#13
+               + '  -k : KeepAlive, ping battery every second to prevent premature shutdwon.'#13
+               + '  -n : NoSlave, dont set console to slave mode after connect.'#13#13
                + 'Enjoy and have a safe ride.',
                mtInformation, [mbOK], 0, mbOK );
 end;
@@ -2801,7 +3071,7 @@ end;
 procedure TfrmBionXMain.btnInfoSaveClick ( Sender : TObject ) ;
 begin
   if sdInfo.Execute then
-    mmInfo.Lines.SaveToFile( UTF8ToSys( sdInfo.Filename ) );
+    mmInfo.Lines.SaveToFile( sdInfo.Filename );
 end;
 
 procedure TfrmBionXMain.btnInfoClearClick(Sender: TObject);
@@ -2813,7 +3083,13 @@ end;
 
 procedure TfrmBionXMain.btnReadSettingsClick(Sender: TObject);
 begin
-  ReadSettings;
+  try
+    ReadSettings;
+    EnableSettingsControls ( true );
+  except
+    EnableSettingsControls ( false );
+    raise;
+  end;
 end;
 
 procedure TfrmBionXMain.btnApplySettingsClick ( Sender: TObject ) ;
@@ -2825,7 +3101,13 @@ end;
 
 procedure TfrmBionXMain.btnReadTuningClick ( Sender: TObject ) ;
 begin
-  ReadTuning;
+  try
+    ReadTuning;
+    EnableTuningControls ( true );
+  except
+    EnableTuningControls ( false );
+    raise;
+  end;
 end;
 
 procedure TfrmBionXMain.btnApplyTuningClick ( Sender: TObject ) ;
@@ -2890,6 +3172,8 @@ procedure TfrmBionXMain.EnableBatteryControls ( Enable : boolean );
 begin
   EnableEditControls ( scbBattery, Enable );
   btnApplyBattery.Enabled := Enable;
+  btnBatteryUnlock.Enabled := Enable;
+  btnBatteryLock.Enabled := Enable;
 end;
 
 procedure TfrmBionXMain.btnApplyBatteryClick ( Sender: TObject ) ;
@@ -2905,6 +3189,11 @@ end;
 procedure TfrmBionXMain.btnBatteryLockClick ( Sender: TObject ) ;
 begin
   FBike.Battery.LockProtection;
+end;
+
+procedure TfrmBionXMain.btnSetForceDoneClick ( Sender: TObject ) ;
+begin
+  FBike.Battery.ConfigForceDone := true;
 end;
 
 (**** tsMotor routines ********************************************************)
@@ -2925,6 +3214,8 @@ procedure TfrmBionXMain.EnableMotorControls ( Enable : boolean );
 begin
   EnableEditControls ( scbMotor, Enable );
   btnApplyMotor.Enabled := Enable;
+  btnMotorUnlock.Enabled := Enable;
+  btnMotorLock.Enabled := Enable;
 end;
 
 
@@ -2970,103 +3261,94 @@ begin
   WriteSensor;
 end;
 
+(**** tsCapture routines ******************************************************)
+
+procedure TfrmBionXMain.CaptureMessage ( const s : string );
+begin
+  mmCapture.Lines.Add ( s );
+end;
+
+procedure TfrmBionXMain.btnCaptureStartClick ( Sender: TObject ) ;
+begin
+  if assigned ( FBike ) then
+  begin
+    FBike.CANIntf.OnLogMsg := @CaptureMessage;
+    if FBike.CANIntf.StartMessageCapturing then
+    begin
+      btnCaptureStart.Enabled := false;
+      btnCaptureStop.Enabled := true;
+    end;
+  end;
+end;
+
+procedure TfrmBionXMain.btnCaptureStopClick ( Sender: TObject ) ;
+begin
+  FBike.CANIntf.StopMessageCapturing;
+  btnCaptureStart.Enabled := true;
+  btnCaptureStop.Enabled := false;
+  FBike.CANIntf.OnLogMsg := @LogMsg;
+end;
+
+procedure TfrmBionXMain.btnCaptureClearClick ( Sender: TObject ) ;
+begin
+  mmCapture.Clear;
+end;
+
 (**** tsTests routines ********************************************************)
 
-procedure TfrmBionXMain.btnLogClearClick(Sender: TObject);
+procedure TfrmBionXMain.btnDebugClearClick(Sender: TObject);
 begin
   mmLog.Clear;
 end;
 
-// for debugging/analyzing purpose only
-procedure TfrmBionXMain.Button1Click(Sender: TObject);
-type
-  TByteSet = set of byte;
-
-const
-  console_validRegisters  = [ 80..83, 100..120, 122..126, 128..142, 160..171, 173..199, 208..212, 215..220, 222..223 ];
-
-  procedure ShowRegisters ( BionXComponent : TBionxComponent; Regs : TByteSet );
-  var
-    i : integer;
-    v : byte;
-    Last : integer;
-  begin
-    Last := 0;
-    for i := 0 to 255 do
-    begin
-      if i in Regs then
-      begin
-        if i-Last > 1 then
-          ShowValue ( '' );
-        try
-          v := BionXComponent.ByteValue[i];
-          ShowValue ( Format ( 'Reg 0x%0.2x = 0x%0.2x / %3d', [i, v, v] ));
-        except
-          on E:Exception do
-            ShowValue ( Format ( 'Reg 0x%0.2x error: %s', [ i, E.Message ] ));
-        end;
-        Last := i;
-      end;
-    end;
-  end;
-
-begin
-//  ShowRegisters ( FBike.Console, console_validRegisters );
-//  ShowRegisters ( FBike.Motor, [0..255] );
-//  FBike.Console.NIP := 'abcd';
-//  FBike.Battery.CellMonBalancerEnabled := false;
-end;
-
 procedure TfrmBionXMain.BitBtn1Click ( Sender: TObject ) ;
 begin
-  Edit1.Text := Format ( '%d', [ Screen.PixelsPerInch ] );
-//  Edit1.Text := Format ( '%0.3f', [ FBike.Battery.ChargerFinalVoltage ] );
-end;
+  if assigned ( FBike ) then
+  try
+//    mmDebug.Lines.Add ( Format ( '%0.2f', [FBike.Battery.CellpackCurrent] ) );
+//    mmDebug.Lines.Add ( Format ( '%0.2f', [FBike.Battery.Voltage] ) );
+    mmDebug.Lines.Add ( DateTimeToStr ( FBike.Battery.RTCTimeDT ));
+//    FBike.CANAdapter.WriteByte( $10, $20, 1 );
+//    FBike.CANAdapter.WriteByte( $10, $20, 0 );
+//    FBike.CANAdapter.WriteByte( $10, $21, 1 );
+//    FBike.Battery.HardwareVersion;
+//    FBike.Battery.SoftwareVersion;
+//    FBike.Battery.SubVersion;
 
-function MsgToStr ( Msg : TCanMsg ) : string;
-begin
-//  Result := Format ( 'Id=%0.2x, Flags=%0.4x, Data=%0.2x %0.2x %0.2x %0.2x %0.2x %0.2x %0.2x %0.2x', [Msg.Id, Msg.Flags, Msg.Data.Bytes[0], Msg.Data.Bytes[1], Msg.Data.Bytes[2], Msg.Data.Bytes[3], Msg.Data.Bytes[4], Msg.Data.Bytes[5], Msg.Data.Bytes[6], Msg.Data.Bytes[7]] );
-  Result := Format ( '%4s, Flags=%0.4x, Data=%0.2x %0.2x %0.2x %0.2x %0.2x %0.2x %0.2x %0.2x', [GetCANIdName(Msg.Id), Msg.Flags, Msg.Data.Bytes[0], Msg.Data.Bytes[1], Msg.Data.Bytes[2], Msg.Data.Bytes[3], Msg.Data.Bytes[4], Msg.Data.Bytes[5], Msg.Data.Bytes[6], Msg.Data.Bytes[7]] );
-end;
-
-function XltMsgToStr ( Msg : TCanMsg ) : string;
-begin
-//  Result :=
-  Result := Format ( '%-0.4s, Flags=%0.4x, Data=%0.2x %0.2x %0.2x %0.2x %0.2x %0.2x %0.2x %0.2x', [GetCANIdName(Msg.Id), Msg.Flags, Msg.Data.Bytes[0], Msg.Data.Bytes[1], Msg.Data.Bytes[2], Msg.Data.Bytes[3], Msg.Data.Bytes[4], Msg.Data.Bytes[5], Msg.Data.Bytes[6], Msg.Data.Bytes[7]] );
-end;
-
-procedure TfrmBionXMain.HandleCANMessage ( Msg : PCANMsg );
-begin
-  LogMsg ( MsgToStr ( Msg^ ));
-  LogMsg ( XltMsgToStr ( Msg^ ));
-end;
-
-var
-  TCA : TTinyCANAdapter;
-
-procedure TfrmBionXMain.Button2Click ( Sender: TObject ) ;
-begin
-  if not assigned ( TCA ) then
-  begin
-    TCA := TTinyCANAdapter.Create ( @LogMsg );
-    if TCA.Connect then
-    begin
-      TCA.StartMessageCapturing ( @HandleCANMessage );
-    end
-    else
-    begin
-      TCA.Free;
-      TCA := nil;
-    end;
-  end
-  else
-  begin
-    TCA.StopMessageCapturing;
-    TCA.Free;
-    TCA := nil;
+  finally
   end;
 end;
 
+procedure TfrmBionXMain.Button3Click ( Sender: TObject ) ;
+begin
+  if assigned ( FBike ) then
+  begin
+//    FBike.Battery.RTCTimeDT := Now();
+//    Edit1.Text := DateTimeToStr ( FBike.Battery.RTCTimeDT );
+    Edit1.Text := IntToStr ( FBike.Motor.WordValue[$7A] );
+  end;
+end;
+
+procedure TfrmBionXMain.Button1Click ( Sender: TObject ) ;
+begin
+//  mmDebug.Lines.Add ( IntToHex ( FBike.Battery.PCBSNPartNumber, 4 ));
+
+
+end;
+
+procedure TfrmBionXMain.Button4Click ( Sender: TObject ) ;
+var
+  i : integer;
+  CANData : TCANData;
+begin
+  for i := 0 to 2047 do
+  begin
+    CANData[0] := i mod 256;
+    CANData[1] := i div 256;
+    FBike.CANIntf.SendCANMsg( i, 2, @CANData );
+    sleep ( 1 );
+  end;
+end;
 
 end.
 

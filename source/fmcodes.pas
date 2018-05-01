@@ -13,12 +13,11 @@ type
   { TCodes }
 
   TCodes = class(TForm)
-    BitBtn1: TBitBtn;
-    BitBtn2: TBitBtn;
+    btnOK: TBitBtn;
+    btnCancel: TBitBtn;
     cbCodes: TCheckGroup;
-    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure BitBtn1Click ( Sender: TObject ) ;
+    procedure btnOKClick ( Sender: TObject ) ;
   private
     { private declarations }
     FCodes : longword;
@@ -74,12 +73,7 @@ begin
   end;
 end;
 
-procedure TCodes.FormCreate(Sender: TObject);
-begin
-  ScaleBy ( Screen.PixelsPerInch, 96 );
-end;
-
-procedure TCodes.BitBtn1Click ( Sender: TObject ) ;
+procedure TCodes.btnOKClick ( Sender: TObject ) ;
 var
   i : byte;
   Mask : longword;
